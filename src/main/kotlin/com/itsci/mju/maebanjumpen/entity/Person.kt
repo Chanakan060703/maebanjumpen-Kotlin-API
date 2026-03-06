@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 data class Person(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = 0,
+    var id: Long? = null,
 
     @Column(unique = true, nullable = false)
     var username: String? = null,
@@ -20,13 +20,26 @@ data class Person(
     var password: String? = null,
 
     var email: String? = null,
+
+    @Column(name = "first_name")
     var firstName: String? = null,
+
+    @Column(name = "last_name")
     var lastName: String? = null,
+
+    @Column(name = "id_card_number")
     var idCardNumber: String? = null,
+
+    @Column(name = "phone_number")
     var phoneNumber: String? = null,
+
     var address: String? = null,
+
+    @Column(name = "picture_url")
     var pictureUrl: String? = null,
-    var accountStatus: String? = null,
+
+    @Column(name = "account_status")
+    var accountStatus: String? = "ACTIVE",
 
     @Column(name = "create_at")
     var createAt: LocalDateTime? = null,

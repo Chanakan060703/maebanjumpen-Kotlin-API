@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import jakarta.persistence.*
 
 @Entity
-@DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
 @JsonIgnoreProperties("hibernateLazyInitializer", "handler")
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -26,7 +26,7 @@ abstract class PartyRole(
     open var id: Long? = 0,
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "person_id", referencedColumnName = "personId", nullable = false, unique = true)
+    @JoinColumn(name = "person_id", referencedColumnName = "id", nullable = false, unique = true)
     open var person: Person? = null
 ) {
     override fun equals(other: Any?): Boolean {

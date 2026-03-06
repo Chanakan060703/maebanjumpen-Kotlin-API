@@ -7,10 +7,10 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface PersonRepository : JpaRepository<Person, Long>, PersonRepositoryCustom {
-  fun findByEmail(username: String): Optional<Person>
-  fun findByUsername(username: String): Optional<Person>
+interface PersonRepository : JpaRepository<Person, Long> {
+    fun findByEmail(email: String): Optional<Person>
+    fun findByUsername(username: String): Optional<Person>
 
-  @Query("select * from users where username = :username or email = :username", nativeQuery = true)
-  fun findByUsernameAndEmail(username: String): Optional<Person>
+    @Query("SELECT p FROM Person p WHERE p.username = :usernameOrEmail OR p.email = :usernameOrEmail")
+    fun findByUsernameOrEmail(usernameOrEmail: String): Optional<Person>
 }

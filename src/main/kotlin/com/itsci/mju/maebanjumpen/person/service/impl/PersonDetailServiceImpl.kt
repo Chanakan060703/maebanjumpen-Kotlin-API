@@ -1,53 +1,61 @@
 package com.itsci.mju.maebanjumpen.person.service.impl
 
-import com.itsci.mju.maebanjumpen.entity.Person
+import com.itsci.mju.maebanjumpen.entity.Hirer
+import com.itsci.mju.maebanjumpen.entity.Housekeeper
+import com.itsci.mju.maebanjumpen.entity.Admin
+import com.itsci.mju.maebanjumpen.partyrole.constant.RoleEnum
+import com.itsci.mju.maebanjumpen.partyrole.repository.HirerRepository
+import com.itsci.mju.maebanjumpen.partyrole.repository.HousekeeperRepository
+import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.person.dto.PersonPrincipal
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 
-@Service
-class PersonDetailServiceImpl : UserDetailsService {
+@Service("personDetailServiceImpl")
+class PersonDetailServiceImpl(
+    private val personRepository: PersonRepository,
+    private val partyRoleRepository: PartyRoleRepository,
+    private val housekeeperRepository: HousekeeperRepository,
+    private val hirerRepository: HirerRepository
+) : UserDetailsService {
 
-  @Autowired
-  lateinit var personRepository: PersonRepository
+    override fun loadUserByUsername(username: String): UserDetails {
+        val personOpt = personRepository.findByUsername(username)
 
-  override fun loadUserByUsername(username: String): UserDetails {
-    val personOpt = personRepository.findByUsername(username)
-    if (personOpt.isPresent) {
-      val person = personOpt.get()
-      val personPrincipal = PersonPrincipal()
-      personPrincipal.setPersonId(person.id)
-      personPrincipal.email = user.email
-      personPrincipal.username = user.username
-      personPrincipal.setPassword(user.password)
-      personPrincipal.setUserTypeId(user.userTypeId)
-      personPrincipal.setEmailVerify(user.emailVerified)
-      personPrincipal.setPlatform(user.platformId)
-      val userType = when {
-        user.userType == null -> {
-          UserRoleEnum.ROLE_GUEST.name
+        if (personOpt.isEmpty) {
+            throw UsernameNotFoundException("User not found with username: $username")
         }
 
-        user.userType.isSuperAdmin -> {
-          UserRoleEnum.ROLE_SUPER_ADMIN.name
+        val person = personOpt.get()
+        val personPrincipal = PersonPrincipal()
+
+        personPrincipal.setPersonId(person.id ?: 0)
+        personPrincipal.setEmail(person.email)
+        personPrincipal.setUsername(person.username)
+        personPrincipal.setPassword(person.password)
+        personPrincipal.setFirstName(person.firstName)
+        personPrincipal.setLastName(person.lastName)
+        personPrincipal.setAccountEnabled(person.accountStatus == "ACTIVE")
+
+        // Find party role and set role
+        val partyRoles = partyRoleRepository.findByPersonId(person.id ?: 0)
+
+        if (partyRoles.isNotEmpty()) {
+            val partyRole = partyRoles.first()
+            personPrincipal.setPartyRoleId(partyRole.id)
+
+            val role = when (partyRole) {
+                is Housekeeper -> RoleEnum.HOUSEKEEPER.securityRole
+                is Hirer -> RoleEnum.HIRER.securityRole
+                is Admin -> RoleEnum.ADMIN.securityRole
+                else -> null
+            }
+            personPrincipal.setRole(role)
         }
 
-        user.userType.isAdmin -> {
-          UserRoleEnum.ROLE_ADMIN.name
-        }
-
-        else -> {
-          UserRoleEnum.ROLE_USER.name
-        }
-      }
-      userPrincipal.setUserType(userType)
-      return userPrincipal
+        return personPrincipal
     }
-
-    throw UsernameNotFoundException("Username or Password doesn't match!")
-  }
 }

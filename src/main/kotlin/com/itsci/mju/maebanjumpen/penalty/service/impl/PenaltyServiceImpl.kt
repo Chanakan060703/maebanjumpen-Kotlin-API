@@ -5,7 +5,7 @@ import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.penalty.dto.PenaltyDTO
 import com.itsci.mju.maebanjumpen.penalty.repository.PenaltyRepository
 import com.itsci.mju.maebanjumpen.penalty.service.PenaltyService
-import com.itsci.mju.maebanjumpen.person.service.PersonService
+import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
 import com.itsci.mju.maebanjumpen.report.repository.ReportRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class PenaltyServiceImpl(
     private val penaltyRepository: PenaltyRepository,
     private val reportRepository: ReportRepository,
-    private val personService: PersonService,
+    private val personRepository: PersonRepository,
     private val partyRoleRepository: PartyRoleRepository
 ) : PenaltyService {
 
@@ -63,7 +63,8 @@ class PenaltyServiceImpl(
 
             if (optionalReport.isPresent) {
                 val report = optionalReport.get()
-                report.penalty = savedPenalty
+                savedPenalty.report = report
+                report.penalties.add(savedPenalty)
                 report.reportStatus = "RESOLVED"
                 reportRepository.save(report)
 
@@ -78,7 +79,6 @@ class PenaltyServiceImpl(
         return mapPenaltyToDto(savedPenalty)
     }
 
-    @Transactional
     private fun updateAccountStatus(targetRoleId: Long, penaltyType: String) {
         val optionalPartyRole = partyRoleRepository.findById(targetRoleId)
 
@@ -87,7 +87,8 @@ class PenaltyServiceImpl(
             val personToUpdate = partyRole.person
 
             if (personToUpdate != null) {
-                personService.updateAccountStatus(personToUpdate.id!!, penaltyType)
+                personToUpdate.accountStatus = penaltyType
+                personRepository.save(personToUpdate)
                 println("Updated person account status to: $penaltyType for person ID: ${personToUpdate.id}")
             } else {
                 System.err.println("Error: Person object is missing for Role ID: $targetRoleId. Cannot update account status.")
@@ -106,7 +107,7 @@ class PenaltyServiceImpl(
 
             penaltyToDelete.report?.id?.let { reportId ->
                 reportRepository.findById(reportId).ifPresent { report ->
-                    report.penalty = null
+                    report.penalties.remove(penaltyToDelete)
                     report.reportStatus = "RESOLVED"
                     reportRepository.save(report)
                     println("Penalty ID $id was unlinked from Report ID ${report.id}")

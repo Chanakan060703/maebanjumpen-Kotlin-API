@@ -4,7 +4,7 @@ import com.itsci.mju.maebanjumpen.skilltype.dto.SkillLevelTierDTO
 import com.itsci.mju.maebanjumpen.skilltype.request.CreateSkillTierRequest
 import com.itsci.mju.maebanjumpen.skilltype.request.UpdateSkillTierRequest
 import com.itsci.mju.maebanjumpen.skilltype.service.SkillLevelTierService
-import com.luca.intern.common.response.HttpResponse
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

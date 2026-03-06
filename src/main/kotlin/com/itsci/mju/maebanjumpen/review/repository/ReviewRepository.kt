@@ -16,13 +16,13 @@ interface ReviewRepository : JpaRepository<Review, Long> {
         const val REVIEW_GRAPH = "review-with-hire-details"
     }
 
-    @EntityGraph(attributePaths = ["hires"])
-    fun findByHiresId(hireId: Long): Optional<Review>
+    @EntityGraph(attributePaths = ["hire"])
+    fun findByHireId(hireId: Long): Optional<Review>
 
-    @EntityGraph(attributePaths = ["hires"])
-    fun findAllByHiresId(hireId: Long): List<Review>
+    @EntityGraph(attributePaths = ["hire"])
+    fun findAllByHireId(hireId: Long): List<Review>
 
-    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.hires h WHERE h.housekeeper.id = :housekeeperId")
-    fun findAllByHousekeeperId(@Param("housekeeperId") housekeeperId: Long): Page<Review>
+    @Query("SELECT r FROM Review r LEFT JOIN FETCH r.hire h WHERE h.housekeeper.id = :housekeeperId")
+    fun findAllByHousekeeperId(@Param("housekeeperId") housekeeperId: Long): List<Review>
 }
 

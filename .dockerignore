@@ -1,8 +1,6 @@
-# Maven
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Gradle build outputs (will be rebuilt in Docker)
+build/
+.gradle/
 
 # IDE
 .idea/
@@ -20,7 +18,6 @@ target/
 .gitattributes
 
 # Docker
-Dockerfile
 docker-compose.yml
 .dockerignore
 
@@ -38,4 +35,10 @@ Thumbs.db
 # Uploads (will be mounted as volume)
 uploads/
 qr_codes/
+
+# Database
+database/
+
+# Agents
+.agents/
 

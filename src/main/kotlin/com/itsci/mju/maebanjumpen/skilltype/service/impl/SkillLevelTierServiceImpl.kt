@@ -5,7 +5,7 @@ import com.itsci.mju.maebanjumpen.skilltype.repository.SkillLevelTierRepository
 import com.itsci.mju.maebanjumpen.skilltype.request.CreateSkillTierRequest
 import com.itsci.mju.maebanjumpen.skilltype.request.UpdateSkillTierRequest
 import com.itsci.mju.maebanjumpen.skilltype.service.SkillLevelTierService
-import com.luca.intern.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

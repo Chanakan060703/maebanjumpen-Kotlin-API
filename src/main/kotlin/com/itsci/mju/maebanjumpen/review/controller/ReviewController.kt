@@ -1,12 +1,12 @@
 package com.itsci.mju.maebanjumpen.review.controller
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import com.itsci.mju.maebanjumpen.review.dto.ReviewDTO
 import com.itsci.mju.maebanjumpen.review.request.CreateReviewRequest
 import com.itsci.mju.maebanjumpen.review.request.UpdateReviewRequest
 import com.itsci.mju.maebanjumpen.review.service.ReviewService
-import com.luca.intern.common.exception.BadRequestException
-import com.luca.intern.common.exception.NotFoundException
-import com.luca.intern.common.response.HttpResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType

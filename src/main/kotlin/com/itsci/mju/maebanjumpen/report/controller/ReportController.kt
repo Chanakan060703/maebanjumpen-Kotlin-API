@@ -1,12 +1,12 @@
 package com.itsci.mju.maebanjumpen.report.controller
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import com.itsci.mju.maebanjumpen.report.dto.ReportDTO
 import com.itsci.mju.maebanjumpen.report.request.CreateReportRequest
 import com.itsci.mju.maebanjumpen.report.request.UpdateReportRequest
 import com.itsci.mju.maebanjumpen.report.service.ReportService
-import com.luca.intern.common.exception.BadRequestException
-import com.luca.intern.common.exception.NotFoundException
-import com.luca.intern.common.response.HttpResponse
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

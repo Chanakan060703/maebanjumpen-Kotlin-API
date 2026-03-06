@@ -1,124 +1,132 @@
 package com.itsci.mju.maebanjumpen.person.service.impl
 
-
-import org.springframework.beans.factory.annotation.Autowired
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.entity.Admin
+import com.itsci.mju.maebanjumpen.entity.Person
+import com.itsci.mju.maebanjumpen.partyrole.repository.AdminRepository
+import com.itsci.mju.maebanjumpen.person.dto.*
+import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
+import com.itsci.mju.maebanjumpen.person.service.PersonService
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.regex.Pattern
+import java.time.LocalDateTime
 
 @Service
-class PersonServiceImpl @Autowired constructor(
-  private val bCryptPasswordEncoder: BCryptPasswordEncoder,
-  private val userRepository: UserRepository,
-  private val platformRepository: PlatformRepository,
-  private val userTypeRepository: UserTypeRepository,
-  cryptPasswordEncoder: BCryptPasswordEncoder,
-) : UserService {
+class PersonServiceImpl(
+    private val bCryptPasswordEncoder: BCryptPasswordEncoder,
+    private val personRepository: PersonRepository,
+    private val adminRepository: AdminRepository
+) : PersonService {
 
-  override fun getUserById(userId: Long): UserMeDto {
-    return userRepository.getUserById(userId)
-  }
+    override fun getUserById(userId: Long): PersonMeDto {
+        val person = personRepository.findById(userId)
+            .orElseThrow { NotFoundException("Person not found with id: $userId") }
 
-  override fun createAdmin(createAdmin: CreateAdminDto, userType: Int) {
-
-    val user = userRepository.findByUsernameAndEmail(createAdmin.username)
-
-    if (user.isPresent) {
-      throw BadRequestException("Username is already exist")
-    }
-    if (createAdmin.password.isEmpty()) {
-      throw BadRequestException("Password is not empty")
-    }
-    platformRepository.findById(createAdmin.platform).orElseThrow{
-      throw NotFoundException("Not found this Platform")
+        return PersonMeDto(
+            id = person.id,
+            email = person.email,
+            firstName = person.firstName,
+            lastName = person.lastName,
+            idCardNumber = person.idCardNumber,
+            phoneNumber = person.phoneNumber,
+            address = person.address,
+            pictureUrl = person.pictureUrl
+        )
     }
 
-    val userData = User(
-      username = createAdmin.username,
-      password = bCryptPasswordEncoder.encode(createAdmin.password),
-      firstName = createAdmin.firstName,
-      lastName = createAdmin.lastName,
-      emailVerified = true,
-      email = createAdmin.email,
-      status = true,
-      phoneVerified = false,
-      userTypeId = userType.toLong(),
-      platformId = createAdmin.platform
-    )
+    override fun createAdmin(createAdmin: CreateAdminDto, userType: Int) {
+        // Check if username already exists
+        if (personRepository.findByUsername(createAdmin.username).isPresent) {
+            throw BadRequestException("Username already exists")
+        }
+        if (createAdmin.password.isEmpty()) {
+            throw BadRequestException("Password cannot be empty")
+        }
 
-    userRepository.save(userData)
+        // Create Person
+        val person = Person(
+            username = createAdmin.username,
+            password = bCryptPasswordEncoder.encode(createAdmin.password),
+            firstName = createAdmin.firstName,
+            lastName = createAdmin.lastName,
+            email = createAdmin.email,
+            phoneNumber = createAdmin.phoneNumber,
+            address = createAdmin.address,
+            idCardNumber = createAdmin.idCardNumber,
+            accountStatus = "ACTIVE",
+            createAt = LocalDateTime.now(),
+            updateAt = LocalDateTime.now()
+        )
+        val savedPerson = personRepository.save(person)
 
-  }
-
-  override fun findAllAdmin(
-    pageable: Pageable,
-    ascending: Boolean,
-    searchTerm: String?,
-    sortField: String?
-  ): Page<AdminListDto> {
-    return userRepository.findAllAdmin(
-      pageable,
-      ascending,
-      searchTerm,
-      sortField,
-    )
-  }
-
-  override fun deleteAdmin(id: Int) {
-    userRepository.deleteById(id.toLong())
-  }
-
-  override fun updateUserMe(id: Int, updateUserDto: UpdateMeDto) {
-    val user = userRepository.findById(id.toLong()).orElseThrow{
-      NotFoundException("User does not exist")
+        // Create Admin party role
+        val admin = Admin().apply {
+            this.person = savedPerson
+        }
+        adminRepository.save(admin)
     }
 
-    user.firstName = updateUserDto.firstName
-    user.lastName = updateUserDto.lastName
-    user.phoneNumber = updateUserDto.phoneNumber
-
-    userRepository.save(user)
-  }
-
-  override fun updatePassword(id: Int, updatePasswordDto: UpdatePasswordDto) {
-    val user = userRepository.findById(id.toLong()).orElseThrow{
-      NotFoundException("User does not found")
+    override fun findAllAdmin(
+        pageable: Pageable,
+        ascending: Boolean,
+        searchTerm: String?,
+        sortField: String?
+    ): Page<AdminListDto> {
+        // Simple implementation - get all admins
+        val admins = adminRepository.findAll()
+        val adminDtos = admins.mapNotNull { admin ->
+            admin.person?.let { person ->
+                AdminListDto(
+                    id = person.id,
+                    email = person.email,
+                    firstName = person.firstName,
+                    lastName = person.lastName,
+                    accountStatus = person.accountStatus
+                )
+            }
+        }
+        return PageImpl(adminDtos, pageable, adminDtos.size.toLong())
     }
 
-    if (bCryptPasswordEncoder.matches(updatePasswordDto.oldPassword, user.password)) {
-      user.password = bCryptPasswordEncoder.encode(updatePasswordDto.newPassword)
-      userRepository.save(user)
-    } else {
-      throw BadRequestException("Old password is incorrect")
-    }
-  }
-
-  override fun editAdmin(id: Int, editAdminDto: EditAdminDto) {
-    val user = userRepository.findById(id.toLong()).orElseThrow{
-      throw NotFoundException("User does not found")
+    override fun deleteAdmin(id: Int) {
+        personRepository.deleteById(id.toLong())
     }
 
-    if (user.userType!!.id != UserRoleEnum.ROLE_ADMIN.value) {
-      throw NotFoundException("User is not Admin")
+    override fun updateUserMe(id: Int, updateUserDto: UpdateMeDto) {
+        val person = personRepository.findById(id.toLong())
+            .orElseThrow { NotFoundException("Person not found") }
+
+        person.firstName = updateUserDto.firstName
+        person.lastName = updateUserDto.lastName
+        person.phoneNumber = updateUserDto.phoneNumber
+        person.updateAt = LocalDateTime.now()
+
+        personRepository.save(person)
     }
 
-    user.firstName = editAdminDto.firstName
-    user.lastName = editAdminDto.lastName
+    override fun updatePassword(id: Int, updatePasswordDto: UpdatePasswordDto) {
+        val person = personRepository.findById(id.toLong())
+            .orElseThrow { NotFoundException("Person not found") }
 
-    userRepository.save(user)
-  }
+        if (bCryptPasswordEncoder.matches(updatePasswordDto.oldPassword, person.password)) {
+            person.password = bCryptPasswordEncoder.encode(updatePasswordDto.newPassword)
+            person.updateAt = LocalDateTime.now()
+            personRepository.save(person)
+        } else {
+            throw BadRequestException("Old password is incorrect")
+        }
+    }
 
-  fun isValidEmail(str: String): Boolean {
-    return Pattern.compile(
-      "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
-          "\\@" +
-          "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
-          "(" +
-          "\\." +
-          "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
-          ")+"
-    ).matcher(str).matches()
-  }
+    override fun editAdmin(id: Int, editAdminDto: EditAdminDto) {
+        val person = personRepository.findById(id.toLong())
+            .orElseThrow { NotFoundException("Person not found") }
+
+        person.accountStatus = editAdminDto.accountStatus
+        person.updateAt = LocalDateTime.now()
+        personRepository.save(person)
+    }
 }

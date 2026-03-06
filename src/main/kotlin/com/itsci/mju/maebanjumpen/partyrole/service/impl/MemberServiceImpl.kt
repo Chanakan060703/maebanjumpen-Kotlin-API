@@ -57,10 +57,6 @@ class MemberServiceImpl(
             existingPerson.phoneNumber = memberDto.person?.phoneNumber
             existingPerson.address = memberDto.person?.address
             existingPerson.pictureUrl = memberDto.person?.pictureUrl
-
-            if (existingPerson.login != null && memberDto.person?.login?.password != null) {
-                existingPerson.login?.password = memberDto.person?.login?.password ?: ""
-            }
         }
 
         if (existingMember is Housekeeper) {

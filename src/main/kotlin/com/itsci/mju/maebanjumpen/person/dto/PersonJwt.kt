@@ -1,13 +1,14 @@
 package com.itsci.mju.maebanjumpen.person.dto
 
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
-@RegisterReflectionForBinding
-class PersonJwt {
-  val uid: Long? = null
-  val email: String? = null
-  val firstName: String? = null
-  val lastName: String? = null
-  val role: String? = null
-}
-
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PersonJwt(
+    val uid: Long? = null,
+    val email: String? = null,
+    val username: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
+    val role: String? = null,
+    val partyRoleId: Long? = null
+)

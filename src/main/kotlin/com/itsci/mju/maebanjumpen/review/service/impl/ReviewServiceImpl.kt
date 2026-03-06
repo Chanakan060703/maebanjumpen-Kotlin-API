@@ -10,7 +10,7 @@ import com.itsci.mju.maebanjumpen.review.repository.ReviewRepository
 import com.itsci.mju.maebanjumpen.review.request.CreateReviewRequest
 import com.itsci.mju.maebanjumpen.review.request.UpdateReviewRequest
 import com.itsci.mju.maebanjumpen.review.service.ReviewService
-import com.luca.intern.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,7 +31,7 @@ class ReviewServiceImpl @Autowired internal constructor(
           reviewMessage = review.reviewMessage,
           score = review.score,
           reviewDate = review.reviewDate,
-          hires = review.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+          hires = review.hire?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
       )
     }
   }
@@ -45,7 +45,7 @@ class ReviewServiceImpl @Autowired internal constructor(
         reviewMessage = review.reviewMessage,
         score = review.score,
         reviewDate = review.reviewDate,
-        hires = review.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+        hires = review.hire?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
     )
   }
 
@@ -58,7 +58,7 @@ class ReviewServiceImpl @Autowired internal constructor(
         reviewMessage = request.reviewMessage,
         score = request.score,
         reviewDate = LocalDateTime.now(),
-        hires = hire
+        hire = hire
     )
     val savedReview = reviewRepository.save(review)
     return ReviewDTO(
@@ -66,7 +66,7 @@ class ReviewServiceImpl @Autowired internal constructor(
         reviewMessage = savedReview.reviewMessage,
         score = savedReview.score,
         reviewDate = savedReview.reviewDate,
-        hires = savedReview.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+        hires = savedReview.hire?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
     )
 
   }
@@ -79,14 +79,14 @@ class ReviewServiceImpl @Autowired internal constructor(
   }
 
   override fun getReviewByHireId(hireId: Long): ReviewDTO? {
-    val review = reviewRepository.findByHiresId(hireId)
+    val review = reviewRepository.findByHireId(hireId)
       .orElseThrow { NotFoundException("Review not found with hire id: $hireId") }
     return ReviewDTO(
         id = review.id,
         reviewMessage = review.reviewMessage,
         score = review.score,
         reviewDate = review.reviewDate,
-        hires = review.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+        hires = review.hire?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
     )
   }
 
@@ -104,30 +104,30 @@ class ReviewServiceImpl @Autowired internal constructor(
         reviewMessage = savedReview.reviewMessage,
         score = savedReview.score,
         reviewDate = savedReview.reviewDate,
-        hires = savedReview.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+        hires = savedReview.hire?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
     )
   }
 
   override fun getReviewsByHireId(hireId: Long): List<ReviewDTO> {
-    return reviewRepository.findAllByHiresId(hireId).map { review ->
+    return reviewRepository.findAllByHireId(hireId).map { review ->
       ReviewDTO(
           id = review.id,
           reviewMessage = review.reviewMessage,
           score = review.score,
           reviewDate = review.reviewDate,
-          hires = review.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+          hires = review.hire?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
       )
     }
   }
 
   override fun getReviewsByHousekeeperId(housekeeperId: Long): List<ReviewDTO> {
-    return reviewRepository.findAllByHousekeeperId(housekeeperId).content.map { review ->
+    return reviewRepository.findAllByHousekeeperId(housekeeperId).map { review ->
       ReviewDTO(
           id = review.id,
           reviewMessage = review.reviewMessage,
           score = review.score,
           reviewDate = review.reviewDate,
-          hires = review.hires?.let { HireDTO(it.id, it.hireName, it.jobStatus) }
+          hires = review.hire?.let { hire -> HireDTO(hire.id, hire.hireName, hire.jobStatus) }
       )
     }
   }

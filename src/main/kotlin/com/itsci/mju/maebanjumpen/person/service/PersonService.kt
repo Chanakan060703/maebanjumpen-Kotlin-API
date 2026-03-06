@@ -1,11 +1,16 @@
 package com.itsci.mju.maebanjumpen.person.service
 
-import com.lucablock.backofficeapi.user.dto.*
+import com.itsci.mju.maebanjumpen.person.dto.AdminListDto
+import com.itsci.mju.maebanjumpen.person.dto.CreateAdminDto
+import com.itsci.mju.maebanjumpen.person.dto.EditAdminDto
+import com.itsci.mju.maebanjumpen.person.dto.PersonMeDto
+import com.itsci.mju.maebanjumpen.person.dto.UpdateMeDto
+import com.itsci.mju.maebanjumpen.person.dto.UpdatePasswordDto
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
-interface UserService {
-  fun getUserById(userId: Long): UserMeDto
+interface PersonService {
+  fun getUserById(personId: Long): PersonMeDto
   fun createAdmin(createAdmin: CreateAdminDto, userType: Int)
 
   fun findAllAdmin(

@@ -4,9 +4,9 @@ import com.itsci.mju.maebanjumpen.skilltype.dto.SkillTypeDTO
 import com.itsci.mju.maebanjumpen.skilltype.request.CreateSkillTypeRequest
 import com.itsci.mju.maebanjumpen.skilltype.request.UpdateSkillTypeRequest
 import com.itsci.mju.maebanjumpen.skilltype.service.SkillTypeService
-import com.luca.intern.common.exception.BadRequestException
-import com.luca.intern.common.exception.NotFoundException
-import com.luca.intern.common.response.HttpResponse
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import org.springframework.http.HttpStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -22,7 +22,7 @@ spring:
 
   # Liquibase Configuration
   liquibase:
-    enabled: true
+    enabled: false
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
   # Jackson Configuration
@@ -70,6 +70,16 @@ app:
   upload:
     dir: ./uploads
   public-base-url: https://unlaminated-unexcitablely-brianna.ngrok-free.dev
+
+# JWT Configuration
+jwt:
+  secret: maebanjumpen-secret-key-should-be-at-least-256-bits-long-for-hs256
+  expiration-ms: 86400000  # 24 hours in milliseconds
+
+# Redis Configuration
+spring.data.redis:
+  host: localhost
+  port: 6379
 
 # Omise API Configuration
 omise:

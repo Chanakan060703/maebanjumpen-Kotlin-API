@@ -1,65 +1,143 @@
 package com.itsci.mju.maebanjumpen.person.controller
 
-import com.itsci.mju.maebanjumpen.person.dto.PersonDTO
-import com.itsci.mju.maebanjumpen.person.service.PersonService
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
+import com.itsci.mju.maebanjumpen.person.dto.PersonPrincipal
+import com.itsci.mju.maebanjumpen.person.request.LoginRequest
+import com.itsci.mju.maebanjumpen.person.service.AuthService
+import com.itsci.mju.maebanjumpen.token.JWTTokenProvider
+import com.itsci.mju.maebanjumpen.token.dto.TokenDto
+import com.itsci.mju.maebanjumpen.token.service.TokenService
+import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
+/**
+ * Legacy PersonController - provides backward compatibility for /api/user endpoints
+ * New implementations should use AuthController at /api/auth
+ */
 @RestController
-@RequestMapping("/maeban/persons")
-class PersonController(private val personService: PersonService) {
+@RequestMapping("/maeban/user")
+class PersonController(
+    private val authenticationManager: AuthenticationManager,
+    private val jwtTokenProvider: JWTTokenProvider,
+    private val tokenService: TokenService,
+    private val authService: AuthService
+) {
+    private val logger = LoggerFactory.getLogger(PersonController::class.java)
 
-    @GetMapping
-    fun getAllPersons(): ResponseEntity<List<PersonDTO>> {
-        val persons = personService.getAllPersons()
-        return ResponseEntity.ok(persons)
-    }
+    /**
+     * Legacy login endpoint - redirects to new auth system
+     */
+    @PostMapping("/login")
+    fun login(@Valid @RequestBody loginRequest: LoginRequest): ResponseEntity<HttpResponse> {
+        return try {
+            val authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(
+                    loginRequest.username,
+                    loginRequest.password
+                )
+            )
 
-    @GetMapping("/{id}")
-    fun getPersonById(@PathVariable id: Long): ResponseEntity<PersonDTO> {
-        val person = personService.getPersonById(id)
-        return ResponseEntity.ok(person)
-    }
+            if (authentication.isAuthenticated) {
+                val personPrincipal = authentication.principal as PersonPrincipal
+                val token = jwtTokenProvider.generateToken(personPrincipal)
 
-    @PostMapping
-    fun createPerson(@RequestBody person: PersonDTO): ResponseEntity<PersonDTO> {
-        val savedPerson = personService.savePerson(person)
-        return ResponseEntity.ok(savedPerson)
-    }
+                tokenService.cacheToken(
+                    TokenDto(
+                        userId = personPrincipal.getPersonId().toString(),
+                        token = token,
+                        multipleLogin = true
+                    )
+                )
 
-    @PutMapping("/{id}")
-    fun updatePerson(@PathVariable id: Long, @RequestBody person: PersonDTO): ResponseEntity<PersonDTO> {
-        val updatedPerson = personService.updatePerson(id, person)
-        return ResponseEntity.ok(updatedPerson)
-    }
+                return ResponseEntity.ok(
+                    HttpResponse(
+                        status = true,
+                        message = "เข้าสู่ระบบสำเร็จ",
+                        data = mapOf("token" to token)
+                    )
+                )
+            }
 
-    @DeleteMapping("/{id}")
-    fun deletePerson(@PathVariable id: Long): ResponseEntity<Void> {
-        personService.deletePerson(id)
-        return ResponseEntity.noContent().build()
-    }
-
-    @PutMapping("/{id}/update-picture-url")
-    fun updatePersonPictureUrl(
-        @PathVariable id: Long,
-        @RequestParam newBaseUrl: String
-    ): ResponseEntity<PersonDTO> {
-        val updatedPerson = personService.updatePersonPictureUrl(id, newBaseUrl)
-        return if (updatedPerson != null) {
-            ResponseEntity.ok(updatedPerson)
-        } else {
-            ResponseEntity.notFound().build()
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                HttpResponse(
+                    status = false,
+                    message = "ไม่สามารถเข้าสู่ระบบได้ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+                )
+            )
+        } catch (e: BadCredentialsException) {
+            logger.error("Login error: ${e.message}")
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                HttpResponse(
+                    status = false,
+                    message = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+                )
+            )
+        } catch (e: Exception) {
+            logger.error("Login error: ${e.message}")
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                HttpResponse(
+                    status = false,
+                    message = "เกิดข้อผิดพลาดในการเข้าสู่ระบบ"
+                )
+            )
         }
     }
 
-    @PutMapping("/update-all-picture-urls")
-    fun updateAllPersonPictureUrls(@RequestParam newBaseUrl: String): ResponseEntity<String> {
+    @PostMapping("/logout")
+    fun logout(@AuthenticationPrincipal personPrincipal: PersonPrincipal): ResponseEntity<HttpResponse> {
         return try {
-            personService.updateAllPersonPictureUrls(newBaseUrl)
-            ResponseEntity.ok("All person picture URLs updated successfully.")
+            tokenService.revokeToken(personPrincipal.getPersonId())
+            ResponseEntity.ok(
+                HttpResponse(
+                    status = true,
+                    message = "ออกจากระบบสำเร็จ"
+                )
+            )
         } catch (e: Exception) {
-            ResponseEntity.internalServerError().body("Failed to update URLs: ${e.message}")
+            logger.error("Logout error: ${e.message}")
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                HttpResponse(
+                    status = false,
+                    message = "เกิดข้อผิดพลาดในการออกจากระบบ"
+                )
+            )
+        }
+    }
+
+    @GetMapping("/me")
+    fun getUser(@AuthenticationPrincipal personPrincipal: PersonPrincipal): ResponseEntity<HttpResponse> {
+        return try {
+            val fullPrincipal = authService.getPersonPrincipal(personPrincipal.getPersonId())
+            ResponseEntity.ok(
+                HttpResponse(
+                    status = true,
+                    message = "ดึงข้อมูลผู้ใช้สำเร็จ",
+                    data = mapOf(
+                        "id" to fullPrincipal.getPersonId(),
+                        "username" to fullPrincipal.username,
+                        "email" to fullPrincipal.getEmail(),
+                        "firstName" to fullPrincipal.getFirstName(),
+                        "lastName" to fullPrincipal.getLastName(),
+                        "role" to fullPrincipal.getRole(),
+                        "partyRoleId" to fullPrincipal.getPartyRoleId()
+                    )
+                )
+            )
+        } catch (e: Exception) {
+            logger.error("Get user error: ${e.message}")
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                HttpResponse(
+                    status = false,
+                    message = "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้"
+                )
+            )
         }
     }
 }
-

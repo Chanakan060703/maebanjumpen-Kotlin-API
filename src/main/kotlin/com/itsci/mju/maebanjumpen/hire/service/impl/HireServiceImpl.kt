@@ -52,7 +52,7 @@ class HireServiceImpl(
   }
 
   override fun getHireById(id: Long): HireDTO {
-    val hire = hireRepository.fetchByIdWithAllDetails(id)
+    val hire = hireRepository.findByIdWithAllDetails(id)
         .orElseThrow { RuntimeException("Hire not found with ID: $id") }
     return mapHireToDto(hire)
   }

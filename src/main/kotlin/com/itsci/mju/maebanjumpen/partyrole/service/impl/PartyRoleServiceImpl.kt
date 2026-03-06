@@ -58,7 +58,7 @@ class PartyRoleServiceImpl(
             is HousekeeperDTO -> Housekeeper().apply {
                 balance = partyRoleDto.balance
                 photoVerifyUrl = partyRoleDto.photoVerifyUrl
-                statusVerify = partyRoleDto.statusVerify?.let { Housekeeper.VerifyStatus.valueOf(it) }
+                statusVerify = partyRoleDto.statusVerify
                 rating = partyRoleDto.rating
                 dailyRate = partyRoleDto.dailyRate
             }

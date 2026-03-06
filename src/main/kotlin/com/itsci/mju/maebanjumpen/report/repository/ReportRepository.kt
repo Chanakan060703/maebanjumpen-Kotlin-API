@@ -12,12 +12,16 @@ interface ReportRepository : JpaRepository<Report, Long> {
 
     fun findByReportStatus(reportStatus: String): List<Report>
 
-    fun findByPenalty_PenaltyId(penaltyId: Long): Optional<Report>
+    @Query("SELECT r FROM Report r JOIN r.penalties p WHERE p.id = :penaltyId")
+    fun findByPenaltyId(@Param("penaltyId") penaltyId: Long): Optional<Report>
 
-    fun findReportsWithPenaltyByPersonId(personId: Long): List<Report>
+    @Query("SELECT r FROM Report r LEFT JOIN FETCH r.penalties WHERE r.reporter.person.id = :personId")
+    fun findReportsWithPenaltyByPersonId(@Param("personId") personId: Long): List<Report>
 
-    fun findByHire_HireId(hireId: Long): List<Report>
+    @Query("SELECT r FROM Report r WHERE r.hire.id = :hireId")
+    fun findByHireId(@Param("hireId") hireId: Long): List<Report>
 
-    fun findByHire_HireIdAndReporter_Id(hireId: Int, reporterId: Long): Optional<Report>
+    @Query("SELECT r FROM Report r WHERE r.hire.id = :hireId AND r.reporter.id = :reporterId")
+    fun findByHireIdAndReporterId(@Param("hireId") hireId: Long, @Param("reporterId") reporterId: Long): Optional<Report>
 }
 

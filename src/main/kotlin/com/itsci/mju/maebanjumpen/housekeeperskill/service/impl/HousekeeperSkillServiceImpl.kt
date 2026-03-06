@@ -62,7 +62,7 @@ class HousekeeperSkillServiceImpl(
             ?: throw IllegalArgumentException("SkillType ID is required")
 
         val optionalExistingHs = housekeeperSkillRepository
-            .findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId, skillTypeId)
+            .findByHousekeeperIdAndSkillTypeId(housekeeperId, skillTypeId.toLong())
 
         if (optionalExistingHs.isPresent) {
             val existingSkill = optionalExistingHs.get()
@@ -132,12 +132,12 @@ class HousekeeperSkillServiceImpl(
 
     @Transactional(readOnly = true)
     override fun findByHousekeeperIdAndSkillTypeId(housekeeperId: Long, skillTypeId: Int): Optional<HousekeeperSkillDTO> {
-        val optionalHs = housekeeperSkillRepository.findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId, skillTypeId)
+        val optionalHs = housekeeperSkillRepository.findByHousekeeperIdAndSkillTypeId(housekeeperId, skillTypeId.toLong())
         return optionalHs.map { mapHousekeeperSkillToDto(it) }
     }
 
     override fun updateSkillLevelAndHiresCompleted(housekeeperId: Long, skillTypeId: Int) {
-        val optionalHs = housekeeperSkillRepository.findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId, skillTypeId)
+        val optionalHs = housekeeperSkillRepository.findByHousekeeperIdAndSkillTypeId(housekeeperId, skillTypeId.toLong())
 
         if (optionalHs.isPresent) {
             val hs = optionalHs.get()

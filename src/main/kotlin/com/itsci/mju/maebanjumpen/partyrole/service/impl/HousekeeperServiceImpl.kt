@@ -92,7 +92,7 @@ class HousekeeperServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getAllHousekeepers(): List<HousekeeperDTO> {
-        val entities = housekeeperRepository.findAllWithPersonLoginAndSkills()
+        val entities = housekeeperRepository.findAllWithPersonAndSkills()
         return entities
             .map { transformHousekeeperUrls(it) }
             .mapNotNull { it?.let { hk -> mapHousekeeperToDto(hk) } }
@@ -121,12 +121,6 @@ class HousekeeperServiceImpl(
 
     @Transactional
     override fun saveHousekeeper(housekeeperDto: HousekeeperDTO): HousekeeperDTO {
-        housekeeperDto.person?.login?.username?.let { username ->
-            if (personRepository.findByUsername(username).isPresent) {
-                throw IllegalStateException("User with username '$username' already exists. Cannot create duplicate Housekeeper.")
-            }
-        }
-
         val housekeeper = Housekeeper().apply {
             balance = housekeeperDto.balance
             photoVerifyUrl = housekeeperDto.photoVerifyUrl
@@ -162,7 +156,7 @@ class HousekeeperServiceImpl(
         }
 
         housekeeperDto.statusVerify?.let {
-            existingHousekeeper.statusVerify = Housekeeper.VerifyStatus.valueOf(it)
+            existingHousekeeper.statusVerify = it
         }
         existingHousekeeper.dailyRate = housekeeperDto.dailyRate
 

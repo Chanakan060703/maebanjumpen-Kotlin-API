@@ -1,20 +1,25 @@
 # Stage 1: Build
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 
-# Copy Maven files first for better caching
-COPY pom.xml ./
-COPY mvnw ./
-COPY .mvn ./.mvn
+# Copy Gradle files first for better caching
+COPY gradlew ./
+COPY gradle ./gradle
+COPY build.gradle.kts ./
+COPY settings.gradle.kts ./
+
+# Make gradlew executable
+RUN chmod +x gradlew
 
 # Download dependencies (this layer will be cached if dependencies don't change)
-RUN mvn dependency:go-offline -B || true
+RUN ./gradlew dependencies --no-daemon || true
 
 # Copy source code
 COPY src ./src
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Build the application and rename the jar
+RUN ./gradlew clean bootJar -x test --no-daemon && \
+    find build/libs -name "*.jar" ! -name "*-plain.jar" -exec cp {} app.jar \;
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
@@ -24,7 +29,7 @@ WORKDIR /app
 RUN mkdir -p /app/uploads/verify_photos /app/uploads/progression_images /app/qr_codes
 
 # Copy the built jar from build stage
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/app.jar app.jar
 
 # Expose port
 EXPOSE 8088

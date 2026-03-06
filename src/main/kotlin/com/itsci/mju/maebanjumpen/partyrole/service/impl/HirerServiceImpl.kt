@@ -93,10 +93,6 @@ class HirerServiceImpl(
             existingPerson.address = hirerDto.person?.address
             existingPerson.pictureUrl = hirerDto.person?.pictureUrl
             existingPerson.accountStatus = hirerDto.person?.accountStatus
-
-            if (existingPerson.login != null && hirerDto.person?.login != null) {
-                existingPerson.login?.password = hirerDto.person?.login?.password ?: ""
-            }
         }
 
         val updatedHirer = hirerRepository.save(existingHirer)

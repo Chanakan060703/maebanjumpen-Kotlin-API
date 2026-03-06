@@ -8,13 +8,13 @@ import com.itsci.mju.maebanjumpen.partyrole.dto.*
 import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.penalty.dto.PenaltyDTO
 import com.itsci.mju.maebanjumpen.penalty.repository.PenaltyRepository
-import com.itsci.mju.maebanjumpen.person.service.PersonService
+import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
 import com.itsci.mju.maebanjumpen.report.dto.ReportDTO
 import com.itsci.mju.maebanjumpen.report.repository.ReportRepository
 import com.itsci.mju.maebanjumpen.report.request.CreateReportRequest
 import com.itsci.mju.maebanjumpen.report.request.UpdateReportRequest
 import com.itsci.mju.maebanjumpen.report.service.ReportService
-import com.luca.intern.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -28,7 +28,7 @@ class ReportServiceImpl @Autowired internal constructor(
   private val partyRoleRepository: PartyRoleRepository,
   private val penaltyRepository: PenaltyRepository,
   private val hireRepository: HireRepository,
-  private val personService: PersonService,
+  private val personRepository: PersonRepository,
   private val hireStatusUpdateService: HireStatusUpdateService
 ) : ReportService {
 
@@ -70,13 +70,13 @@ class ReportServiceImpl @Autowired internal constructor(
         reportDate = report.reportDate,
         reportStatus = report.reportStatus,
         reporter = report.reporter?.let { mapPartyRoleToDto(it) },
-        penalty = report.penalty?.let {
+        penalty = report.penalties.firstOrNull()?.let { penalty ->
           PenaltyDTO(
-              id = it.id,
-              penaltyType = it.penaltyType,
-              penaltyDetail = it.penaltyDetail,
-              penaltyDate = it.penaltyDate,
-              penaltyStatus = it.penaltyStatus
+              id = penalty.id,
+              penaltyType = penalty.penaltyType,
+              penaltyDetail = penalty.penaltyDetail,
+              penaltyDate = penalty.penaltyDate,
+              penaltyStatus = penalty.penaltyStatus
           )
         },
         hire = report.hire?.let { HireDTO(id = it.id, hireName = it.hireName, jobStatus = it.jobStatus) }
@@ -144,7 +144,7 @@ class ReportServiceImpl @Autowired internal constructor(
 
   override fun findByPenaltyId(penaltyId: Long?): Optional<ReportDTO> {
     if (penaltyId == null) return Optional.empty()
-    return reportRepository.findByPenalty_PenaltyId(penaltyId)
+    return reportRepository.findByPenaltyId(penaltyId)
         .map { mapReportToDto(it) }
   }
 
@@ -160,10 +160,10 @@ class ReportServiceImpl @Autowired internal constructor(
 
   @Transactional
   override fun updateUserAccountStatus(personId: Long, isBanned: Boolean) {
-    val person = personService.getPersonById(personId)
-        ?: throw IllegalArgumentException("Person not found with id: $personId")
+    val person = personRepository.findById(personId)
+        .orElseThrow { IllegalArgumentException("Person not found with id: $personId") }
     person.accountStatus = if (isBanned) "banned" else "active"
-    personService.updatePerson(personId, person)
+    personRepository.save(person)
   }
 
 
