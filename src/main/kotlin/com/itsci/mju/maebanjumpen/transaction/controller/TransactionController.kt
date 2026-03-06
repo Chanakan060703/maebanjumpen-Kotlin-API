@@ -6,6 +6,7 @@ import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.service.MemberService
+import com.itsci.mju.maebanjumpen.transaction.constant.TransactionStatusEnum
 import com.itsci.mju.maebanjumpen.transaction.dto.QrCodeRequestDTO
 import com.itsci.mju.maebanjumpen.transaction.dto.TransactionDTO
 import com.itsci.mju.maebanjumpen.transaction.service.OmiseService
@@ -324,7 +325,7 @@ class TransactionController @Autowired internal constructor(
                 member = MemberDTO().apply { this.id = memberId }
                 transactionType = "DEPOSIT"
                 transactionAmount = amount
-                transactionStatus = "Pending Payment"
+                transactionStatus = TransactionStatusEnum.PENDING
             }
 
             // 2. บันทึก Transaction เพื่อให้ได้ ID สำหรับใช้กับ Omise
@@ -340,7 +341,7 @@ class TransactionController @Autowired internal constructor(
                 val svgBase64 = omiseQrResponse["qrCodeImageBase64"]
 
                 // 4. อัปเดตสถานะ Transaction เมื่อ QR Code ถูกสร้างแล้ว
-                savedTransactionDto.transactionStatus = "QR Generated"
+                savedTransactionDto.transactionStatus = TransactionStatusEnum.PENDING
                 transactionService.saveTransaction(savedTransactionDto)
 
                 ResponseEntity.ok().body(
@@ -354,10 +355,10 @@ class TransactionController @Autowired internal constructor(
                     )
                 )
             } else {
-                savedTransactionDto?.let {
-                    it.transactionStatus = "Failed"
-                    transactionService.saveTransaction(it)
-                }
+              savedTransactionDto.let {
+                it.transactionStatus = TransactionStatusEnum.FAILED
+                transactionService.saveTransaction(it)
+              }
                 ResponseEntity.badRequest().body(
                     HttpResponse(
                         false,
@@ -369,7 +370,7 @@ class TransactionController @Autowired internal constructor(
             val failedDto = savedTransactionDto ?: depositTransactionDto
             if (failedDto?.transactionId != null) {
                 try {
-                    failedDto.transactionStatus = "Failed"
+                    failedDto.transactionStatus = TransactionStatusEnum.FAILED
                     transactionService.saveTransaction(failedDto)
                 } catch (ex: Exception) { /* ignore secondary save error */ }
             }
@@ -381,12 +382,6 @@ class TransactionController @Autowired internal constructor(
                 )
             )
         } catch (e: Exception) {
-            savedTransactionDto?.let {
-                try {
-                    it.transactionStatus = "Failed"
-                    transactionService.saveTransaction(it)
-                } catch (ex: Exception) { /* ignore secondary save error */ }
-            }
             logger.error(e.message)
             ResponseEntity.badRequest().body(
                 HttpResponse(

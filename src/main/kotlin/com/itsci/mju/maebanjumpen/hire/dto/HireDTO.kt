@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.itsci.mju.maebanjumpen.partyrole.dto.HirerDTO
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import com.itsci.mju.maebanjumpen.review.dto.ReviewDTO
+import com.itsci.mju.maebanjumpen.hire.constant.JobStatusEnum
 import com.itsci.mju.maebanjumpen.skilltype.dto.SkillTypeDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -20,7 +21,7 @@ data class HireDTO(
     var startTime: LocalTime? = null,
     var endTime: LocalTime? = null,
     var location: String? = null,
-    var jobStatus: String? = null,
+    var jobStatus: JobStatusEnum? = null,
     var hirer: HirerDTO? = null,
     var housekeeper: HousekeeperDTO? = null,
     var skillType: SkillTypeDTO? = null,

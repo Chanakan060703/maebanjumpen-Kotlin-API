@@ -2,13 +2,14 @@ package com.itsci.mju.maebanjumpen.transaction.dto
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
+import com.itsci.mju.maebanjumpen.transaction.constant.TransactionStatusEnum
 import java.time.LocalDateTime
 
 data class TransactionDTO(
     var transactionType: String? = null,
     var transactionAmount: Double? = null,
     var transactionDate: LocalDateTime? = null,
-    var transactionStatus: String? = null,
+    var transactionStatus: TransactionStatusEnum? = null,
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
     var member: MemberDTO? = null,
     var prompayNumber: String? = null,

@@ -4,10 +4,12 @@ import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
 import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import com.itsci.mju.maebanjumpen.entity.Penalty
 import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
+import com.itsci.mju.maebanjumpen.penalty.constant.PenaltyStatusEnum
 import com.itsci.mju.maebanjumpen.penalty.dto.PenaltyDTO
 import com.itsci.mju.maebanjumpen.penalty.repository.PenaltyRepository
 import com.itsci.mju.maebanjumpen.penalty.service.PenaltyService
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
+import com.itsci.mju.maebanjumpen.report.constant.ReportStatusEnum
 import com.itsci.mju.maebanjumpen.report.repository.ReportRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -28,7 +30,7 @@ class PenaltyServiceImpl @Autowired internal constructor(
             penaltyType = penalty.penaltyType,
             penaltyDetail = penalty.penaltyDetail,
             penaltyDate = penalty.penaltyDate,
-            penaltyStatus = penalty.penaltyStatus,
+            penaltyStatus = PenaltyStatusEnum.fromValue(penalty.penaltyStatus),
             reportId = penalty.report?.id
         )
     }
@@ -56,7 +58,7 @@ class PenaltyServiceImpl @Autowired internal constructor(
             penaltyType = penaltyDto.penaltyType ?: ""
             penaltyDetail = penaltyDto.penaltyDetail ?: ""
             penaltyDate = penaltyDto.penaltyDate
-            penaltyStatus = penaltyDto.penaltyStatus ?: ""
+            penaltyStatus = penaltyDto.penaltyStatus?.value ?: ""
         }
         val savedPenalty = penaltyRepository.save(penalty)
 
@@ -68,7 +70,7 @@ class PenaltyServiceImpl @Autowired internal constructor(
                 val report = optionalReport.get()
                 savedPenalty.report = report
                 report.penalties.add(savedPenalty)
-                report.reportStatus = "RESOLVED"
+                report.reportStatus = ReportStatusEnum.RESOLVED.value
                 reportRepository.save(report)
 
                 updateAccountStatus(targetRoleId, savedPenalty.penaltyType ?: "")
@@ -133,7 +135,7 @@ class PenaltyServiceImpl @Autowired internal constructor(
         penaltyDto.penaltyType?.let { existingPenalty.penaltyType = it }
         penaltyDto.penaltyDetail?.let { existingPenalty.penaltyDetail = it }
         penaltyDto.penaltyDate?.let { existingPenalty.penaltyDate = it }
-        penaltyDto.penaltyStatus?.let { existingPenalty.penaltyStatus = it }
+        penaltyDto.penaltyStatus?.let { existingPenalty.penaltyStatus = it.value }
 
         val updatedPenalty = penaltyRepository.save(existingPenalty)
 

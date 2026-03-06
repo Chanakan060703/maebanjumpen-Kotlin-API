@@ -1,6 +1,7 @@
 package com.itsci.mju.maebanjumpen.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.itsci.mju.maebanjumpen.hire.constant.JobStatusEnum
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
 import jakarta.persistence.*
 import java.time.LocalDate
@@ -99,7 +100,7 @@ data class Hire(
             startTime = startTime,
             endTime = endTime,
             location = location,
-            jobStatus = jobStatus
+            jobStatus = JobStatusEnum.fromValue(jobStatus)
         )
     }
 }

@@ -2,6 +2,7 @@ package com.itsci.mju.maebanjumpen.hire.service.impl
 
 
 import com.itsci.mju.maebanjumpen.entity.Hire
+import com.itsci.mju.maebanjumpen.hire.constant.JobStatusEnum
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
 import com.itsci.mju.maebanjumpen.hire.repository.HireRepository
 import com.itsci.mju.maebanjumpen.hire.request.CreateHireRequest
@@ -42,7 +43,7 @@ class HireServiceImpl @Autowired internal constructor(
         startTime = hire.startTime,
         endTime = hire.endTime,
         location = hire.location,
-        jobStatus = hire.jobStatus,
+        jobStatus = JobStatusEnum.fromValue(hire.jobStatus),
         skillType = hire.skillType?.let { it.toSkillTypeDTO(it.id) }
     )
   }
@@ -91,7 +92,7 @@ class HireServiceImpl @Autowired internal constructor(
         startTime = request.startTime,
         endTime = request.endTime,
         location = request.location,
-        jobStatus = "Pending",
+        jobStatus = JobStatusEnum.PENDING.value,
         hirer = hirer,
         housekeeper = housekeeper,
         skillType = skillType
@@ -129,7 +130,7 @@ class HireServiceImpl @Autowired internal constructor(
   }
 
   override fun getCompletedHiresByHousekeeperId(housekeeperId: Long): List<HireDTO> {
-    return hireRepository.findByHousekeeperIdAndJobStatusWithDetails(housekeeperId, "Completed")
+    return hireRepository.findByHousekeeperIdAndJobStatusWithDetails(housekeeperId, JobStatusEnum.COMPLETED.value)
         .map { mapHireToDto(it) }
   }
 

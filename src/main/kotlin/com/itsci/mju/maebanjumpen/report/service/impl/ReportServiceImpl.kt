@@ -10,12 +10,15 @@ import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.penalty.dto.PenaltyDTO
 import com.itsci.mju.maebanjumpen.penalty.repository.PenaltyRepository
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
+import com.itsci.mju.maebanjumpen.report.constant.ReportStatusEnum
 import com.itsci.mju.maebanjumpen.report.dto.ReportDTO
 import com.itsci.mju.maebanjumpen.report.repository.ReportRepository
 import com.itsci.mju.maebanjumpen.report.request.CreateReportRequest
 import com.itsci.mju.maebanjumpen.report.request.UpdateReportRequest
 import com.itsci.mju.maebanjumpen.report.service.ReportService
 import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.hire.constant.JobStatusEnum
+import com.itsci.mju.maebanjumpen.penalty.constant.PenaltyStatusEnum
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -69,7 +72,7 @@ class ReportServiceImpl @Autowired internal constructor(
         reportTitle = report.reportTitle,
         reportMessage = report.reportMessage,
         reportDate = report.reportDate,
-        reportStatus = report.reportStatus,
+        reportStatus = ReportStatusEnum.fromValue(report.reportStatus),
         reporter = report.reporter?.let { mapPartyRoleToDto(it) },
         penalty = report.penalties.firstOrNull()?.let { penalty ->
           PenaltyDTO(
@@ -77,10 +80,10 @@ class ReportServiceImpl @Autowired internal constructor(
               penaltyType = penalty.penaltyType,
               penaltyDetail = penalty.penaltyDetail,
               penaltyDate = penalty.penaltyDate,
-              penaltyStatus = penalty.penaltyStatus
+              penaltyStatus = PenaltyStatusEnum.fromValue(penalty.penaltyStatus)
           )
         },
-        hire = report.hire?.let { HireDTO(id = it.id, hireName = it.hireName, jobStatus = it.jobStatus) }
+        hire = report.hire?.let { HireDTO(id = it.id, hireName = it.hireName, jobStatus = JobStatusEnum.fromValue(it.jobStatus)) }
     )
   }
 

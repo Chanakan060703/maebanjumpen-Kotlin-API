@@ -6,6 +6,7 @@ import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import com.itsci.mju.maebanjumpen.entity.Transaction
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.MemberRepository
+import com.itsci.mju.maebanjumpen.transaction.constant.TransactionStatusEnum
 import com.itsci.mju.maebanjumpen.transaction.dto.TransactionDTO
 import com.itsci.mju.maebanjumpen.transaction.repository.TransactionRepository
 import com.itsci.mju.maebanjumpen.transaction.service.TransactionService
@@ -29,7 +30,7 @@ class TransactionServiceImpl @Autowired internal constructor(
             transactionType = transaction.transactionType,
             transactionAmount = transaction.transactionAmount,
             transactionDate = transaction.transactionDate,
-            transactionStatus = transaction.transactionStatus,
+            transactionStatus = TransactionStatusEnum.fromValue(transaction.transactionStatus),
             member = (transaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member)?.let { member ->
                 MemberDTO().apply {
                     id = member.id
@@ -51,7 +52,7 @@ class TransactionServiceImpl @Autowired internal constructor(
             transactionType = dto.transactionType ?: "",
             transactionAmount = dto.transactionAmount ?: 0.0,
             transactionDate = dto.transactionDate,
-            transactionStatus = dto.transactionStatus ?: "",
+            transactionStatus = dto.transactionStatus?.value ?: "",
             prompayNumber = dto.prompayNumber,
             bankAccountNumber = dto.bankAccountNumber,
             bankAccountName = dto.bankAccountName,
@@ -118,14 +119,14 @@ class TransactionServiceImpl @Autowired internal constructor(
 
         if (transaction.transactionStatus.isEmpty()) {
             transaction.transactionStatus = when {
-                "Deposit".equals(transaction.transactionType, ignoreCase = true) -> "Pending Payment"
-                "Withdrawal".equals(transaction.transactionType, ignoreCase = true) -> "Pending Approve"
-                else -> "Pending"
+                "Deposit".equals(transaction.transactionType, ignoreCase = true) -> TransactionStatusEnum.PENDING.value
+                "Withdrawal".equals(transaction.transactionType, ignoreCase = true) -> TransactionStatusEnum.PENDING.value
+                else -> TransactionStatusEnum.PENDING.value
             }
         }
 
-        val currentTransactionStatus = transaction.transactionStatus
-        if (listOf("Approved", "Rejected", "Completed", "SUCCESS").any { it.equals(currentTransactionStatus, ignoreCase = true) }) {
+        val currentTransactionStatus = TransactionStatusEnum.fromValue(transaction.transactionStatus)
+        if (currentTransactionStatus in listOf(TransactionStatusEnum.APPROVED, TransactionStatusEnum.REJECTED, TransactionStatusEnum.COMPLETED, TransactionStatusEnum.SUCCESS)) {
             if (transaction.transactionApprovalDate == null) {
                 transaction.transactionApprovalDate = LocalDateTime.now()
             }
@@ -134,10 +135,11 @@ class TransactionServiceImpl @Autowired internal constructor(
         }
 
         val savedTransaction = transactionRepository.save(transaction)
-        val savedStatusEnglish = savedTransaction.transactionStatus.uppercase()
+        val savedStatus = TransactionStatusEnum.fromValue(savedTransaction.transactionStatus)
+        val oldStatusEnum = TransactionStatusEnum.fromValue(oldStatus)
 
-        if ((savedStatusEnglish == "APPROVED" || savedStatusEnglish == "SUCCESS") &&
-            !(oldStatus?.uppercase() == "APPROVED" || oldStatus?.uppercase() == "SUCCESS")) {
+        if ((savedStatus == TransactionStatusEnum.APPROVED || savedStatus == TransactionStatusEnum.SUCCESS) &&
+            !(oldStatusEnum == TransactionStatusEnum.APPROVED || oldStatusEnum == TransactionStatusEnum.SUCCESS)) {
 
             val memberToUpdate = savedTransaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member
             if (memberToUpdate != null) {
@@ -149,7 +151,7 @@ class TransactionServiceImpl @Autowired internal constructor(
                         memberToUpdate.balance = currentBalance - transactionAmount
                         memberRepository.save(memberToUpdate)
                     } else {
-                        savedTransaction.transactionStatus = "Failed"
+                        savedTransaction.transactionStatus = TransactionStatusEnum.FAILED.value
                         savedTransaction.transactionApprovalDate = LocalDateTime.now()
                         transactionRepository.save(savedTransaction)
                         throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds for withdrawal ($currentBalance < $transactionAmount)")
@@ -203,21 +205,22 @@ class TransactionServiceImpl @Autowired internal constructor(
     @Transactional
     override fun updateWithdrawalRequestStatus(transactionId: Long, newStatus: String): Optional<TransactionDTO> {
         return transactionRepository.findById(transactionId).map { existingTransaction ->
-            val oldStatus = existingTransaction.transactionStatus
+            val oldStatusEnum = TransactionStatusEnum.fromValue(existingTransaction.transactionStatus)
 
             existingTransaction.transactionStatus = newStatus
 
-            if (listOf("Approved", "Rejected", "Completed", "SUCCESS").any { it.equals(newStatus, ignoreCase = true) }) {
+            val newStatusEnum = TransactionStatusEnum.fromValue(newStatus)
+            if (newStatusEnum in listOf(TransactionStatusEnum.APPROVED, TransactionStatusEnum.REJECTED, TransactionStatusEnum.COMPLETED, TransactionStatusEnum.SUCCESS)) {
                 existingTransaction.transactionApprovalDate = LocalDateTime.now()
             } else {
                 existingTransaction.transactionApprovalDate = null
             }
 
             val savedTransaction = transactionRepository.save(existingTransaction)
-            val savedStatusEnglish = savedTransaction.transactionStatus.uppercase()
+            val savedStatusEnum = TransactionStatusEnum.fromValue(savedTransaction.transactionStatus)
 
-            if ((savedStatusEnglish == "APPROVED" || savedStatusEnglish == "SUCCESS") &&
-                !(oldStatus.uppercase() == "APPROVED" || oldStatus.uppercase() == "SUCCESS")) {
+            if ((savedStatusEnum == TransactionStatusEnum.APPROVED || savedStatusEnum == TransactionStatusEnum.SUCCESS) &&
+                !(oldStatusEnum == TransactionStatusEnum.APPROVED || oldStatusEnum == TransactionStatusEnum.SUCCESS)) {
 
                 val memberToUpdate = savedTransaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member
                 if (memberToUpdate != null) {
@@ -229,7 +232,7 @@ class TransactionServiceImpl @Autowired internal constructor(
                             memberToUpdate.balance = currentBalance - transactionAmount
                             memberRepository.save(memberToUpdate)
                         } else {
-                            savedTransaction.transactionStatus = "Failed"
+                            savedTransaction.transactionStatus = TransactionStatusEnum.FAILED.value
                             savedTransaction.transactionApprovalDate = LocalDateTime.now()
                             transactionRepository.save(savedTransaction)
                             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds for withdrawal ($currentBalance < $transactionAmount)")
@@ -267,14 +270,16 @@ class TransactionServiceImpl @Autowired internal constructor(
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, "PartyRole associated with transaction not found.")
             }
 
+            val oldStatusEnum = TransactionStatusEnum.fromValue(oldStatus)
+
             when {
                 chargeStatus == "successful" && paid -> {
-                    transaction.transactionStatus = "SUCCESS"
+                    transaction.transactionStatus = TransactionStatusEnum.SUCCESS.value
                     transaction.transactionApprovalDate = LocalDateTime.now()
 
                     val member = transaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member
                     if (member != null) {
-                        if (!listOf("SUCCESS", "APPROVED").any { it.equals(oldStatus, ignoreCase = true) }) {
+                        if (oldStatusEnum !in listOf(TransactionStatusEnum.SUCCESS, TransactionStatusEnum.APPROVED)) {
                             val amountInBaht = amountInSatang / 100.0
                             val currentMemberBalance = member.balance ?: 0.0
                             member.balance = currentMemberBalance + amountInBaht
@@ -286,11 +291,11 @@ class TransactionServiceImpl @Autowired internal constructor(
                     }
                 }
                 chargeStatus == "failed" -> {
-                    transaction.transactionStatus = "FAILED"
+                    transaction.transactionStatus = TransactionStatusEnum.FAILED.value
                     println("Transaction ID: $ourTransactionId failed.")
                 }
                 else -> {
-                    transaction.transactionStatus = chargeStatus.uppercase()
+                    transaction.transactionStatus = TransactionStatusEnum.fromValue(chargeStatus)?.value ?: chargeStatus.uppercase()
                     println("Transaction ID: $ourTransactionId status: $chargeStatus")
                 }
             }

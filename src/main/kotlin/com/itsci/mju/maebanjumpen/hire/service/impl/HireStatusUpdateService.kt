@@ -1,6 +1,8 @@
 package com.itsci.mju.maebanjumpen.hire.service.impl
 
+import com.itsci.mju.maebanjumpen.hire.constant.JobStatusEnum
 import com.itsci.mju.maebanjumpen.hire.repository.HireRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -8,7 +10,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 
 @Service
-class HireStatusUpdateService(
+class HireStatusUpdateService @Autowired internal constructor(
     private val hireRepository: HireRepository,
     private val taskScheduler: TaskScheduler
 ) {
@@ -19,12 +21,12 @@ class HireStatusUpdateService(
 
         val latestStatus = hireToUpdate?.jobStatus
 
-        val shouldRevert = "Reported".equals(latestStatus, ignoreCase = true)
+        val shouldRevert = JobStatusEnum.REPORTED.value.equals(latestStatus, ignoreCase = true)
 
         if (hireToUpdate != null && shouldRevert) {
-            hireToUpdate.jobStatus = "Completed"
+            hireToUpdate.jobStatus = JobStatusEnum.COMPLETED.value
             hireRepository.save(hireToUpdate)
-            println("✅ Hire ID $hireId status reverted from '$latestStatus' to 'Completed' at ${LocalDateTime.now()}")
+            println("✅ Hire ID $hireId status reverted from '$latestStatus' to '${JobStatusEnum.COMPLETED.value}' at ${LocalDateTime.now()}")
         } else {
             if (hireToUpdate == null) {
                 System.err.println("Hire ID $hireId not found when attempting to revert status.")
@@ -35,7 +37,7 @@ class HireStatusUpdateService(
     }
 
     fun scheduleStatusRevert(hireId: Long, delayInSeconds: Long) {
-        println("⏳ Scheduled Hire ID $hireId to revert status to 'Completed' in $delayInSeconds seconds.")
+        println("⏳ Scheduled Hire ID $hireId to revert status to '${JobStatusEnum.COMPLETED.value}' in $delayInSeconds seconds.")
 
         taskScheduler.schedule({
             try {
