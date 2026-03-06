@@ -8,12 +8,10 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface HirerRepository : JpaRepository<Hirer, Int> {
+interface HirerRepository : JpaRepository<Hirer, Long> {
 
-    @Query("SELECT h FROM Hirer h JOIN FETCH h.person p LEFT JOIN FETCH p.login l LEFT JOIN FETCH h.hires")
     override fun findAll(): List<Hirer>
 
-    @Query("SELECT h FROM Hirer h JOIN FETCH h.person p LEFT JOIN FETCH p.login l LEFT JOIN FETCH h.hires hs WHERE h.id = :id")
-    override fun findById(@Param("id") id: Int): Optional<Hirer>
+    override fun findById(id: Long): Optional<Hirer>
 }
 

@@ -1,27 +1,36 @@
 databaseChangeLog:
   - changeSet:
       id: create-table-skill_type
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: skill_type
             columns:
               - column:
-                  name: skill_type_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: skill_type_name
+                  name: name
                   type: varchar(255)
               - column:
-                  name: skill_type_detail
+                  name: detail
                   type: varchar(255)
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
   - changeSet:
       id: create-table-skill_level_tier
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: skill_level_tier
@@ -34,45 +43,44 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: skill_level_name
+                  name: name
                   type: varchar(255)
               - column:
                   name: min_hires_for_level
                   type: int
-
-  - changeSet:
-      id: create-table-login
-      author: chanakam.beem
-      changes:
-        - createTable:
-            tableName: login
-            columns:
               - column:
-                  name: username
-                  type: varchar(255)
-                  constraints:
-                    primaryKey: true
-                    nullable: false
+                  name: create_at
+                  type: timestamp
               - column:
-                  name: password
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: create-table-person
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: person
             columns:
               - column:
-                  name: person_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar(255)
               - column:
                   name: email
                   type: varchar(255)
@@ -98,17 +106,18 @@ databaseChangeLog:
                   name: account_status
                   type: varchar(255)
               - column:
-                  name: username
-                  type: varchar(255)
-                  constraints:
-                    unique: true
-                    nullable: false
-                    foreignKeyName: fk_person_login
-                    references: login(username)
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: create-table-party_role
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: party_role
@@ -121,7 +130,7 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: dtype
+                  name: role
                   type: varchar(255)
               - column:
                   name: person_id
@@ -130,10 +139,7 @@ databaseChangeLog:
                     unique: true
                     nullable: false
                     foreignKeyName: fk_party_role_person
-                    references: person(person_id)
-              - column:
-                  name: admin_status
-                  type: varchar(255)
+                    references: person(id)
               - column:
                   name: balance
                   type: double
@@ -149,16 +155,25 @@ databaseChangeLog:
               - column:
                   name: daily_rate
                   type: varchar(255)
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: create-table-housekeeper_skill
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: housekeeper_skill
             columns:
               - column:
-                  name: skill_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
@@ -177,7 +192,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_housekeeper_skill_skill_type
-                    references: skill_type(skill_type_id)
+                    references: skill_type(id)
               - column:
                   name: skill_level_tier_id
                   type: int
@@ -191,28 +206,37 @@ databaseChangeLog:
               - column:
                   name: price_per_day
                   type: double
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: create-table-hire
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: hire
             columns:
               - column:
-                  name: hire_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: hire_name
+                  name: name
                   type: varchar(255)
                   constraints:
                     nullable: false
               - column:
-                  name: hire_detail
+                  name: detail
                   type: varchar(255)
                   constraints:
                     nullable: false
@@ -269,17 +293,26 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_hire_skill_type
-                    references: skill_type(skill_type_id)
+                    references: skill_type(id)
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: create-table-review
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: review
             columns:
               - column:
-                  name: review_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
@@ -302,48 +335,57 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_review_hire
-                    references: hire(hire_id)
+                    references: hire(id)
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: create-table-transactions
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: transactions
             columns:
               - column:
-                  name: transaction_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: transaction_type
-                  type: varchar(255)
+                  name: type
+                  type: int
                   constraints:
                     nullable: false
               - column:
-                  name: transaction_amount
+                  name: amount
                   type: double
                   constraints:
                     nullable: false
               - column:
-                  name: transaction_date
+                  name: date
                   type: datetime
                   constraints:
                     nullable: false
               - column:
-                  name: transaction_status
+                  name: status
                   type: varchar(255)
                   constraints:
                     nullable: false
               - column:
-                  name: member_id
+                  name: party_role_id
                   type: int
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_transactions_member
+                    foreignKeyName: fk_transactions_party_role
                     references: party_role(id)
               - column:
                   name: prompay_number
@@ -357,50 +399,25 @@ databaseChangeLog:
               - column:
                   name: transaction_approval_date
                   type: datetime
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
-      id: create-table-penalty
-      author: chanakam.beem
-      changes:
-        - createTable:
-            tableName: penalty
-            columns:
-              - column:
-                  name: penalty_id
-                  type: int
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: penalty_type
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: penalty_detail
-                  type: varchar(255)
-                  constraints:
-                    nullable: true
-              - column:
-                  name: penalty_date
-                  type: datetime
-                  constraints:
-                    nullable: false
-              - column:
-                  name: penalty_status
-                  type: varchar(255)
-                  constraints:
-                    nullable: false
-  - changeSet:
       id: create-table-report
-      author: chanakam.beem
+      author: chanakan.beem
       changes:
         - createTable:
             tableName: report
             columns:
               - column:
-                  name: report_id
+                  name: id
                   type: int
                   autoIncrement: true
                   constraints:
@@ -437,12 +454,62 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_report_hire
-                    references: hire(hire_id)
+                    references: hire(id)
               - column:
-                  name: penalty_id
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean
+
+  - changeSet:
+      id: create-table-penalty
+      author: chanakan.beem
+      changes:
+        - createTable:
+            tableName: penalty
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: penalty_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: penalty_detail
+                  type: varchar(255)
+              - column:
+                  name: penalty_date
+                  type: datetime
+                  constraints:
+                    nullable: false
+              - column:
+                  name: penalty_status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: report_id
                   type: int
                   constraints:
-                    foreignKeyName: fk_report_penalty
-                    references: penalty(penalty_id)
+                    foreignKeyName: fk_penalty_report
+                    references: report(id)
                     nullable: true
-  
+              - column:
+                  name: create_at
+                  type: timestamp
+              - column:
+                  name: update_at
+                  type: timestamp
+              - column:
+                  name: is_delete
+                  type: boolean

@@ -11,18 +11,23 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  header: skill_type_id
-                  name: skill_type_id
+                  name: id
                   type: numeric
               - column:
-                  header: skill_type_name
-                  name: skill_type_name
+                  name: name
                   type: varchar
               - column:
-                  header: skill_type_detail
-                  name: skill_type_detail
+                  name: detail
                   type: varchar
-
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-skill_level_tier-data
@@ -39,31 +44,20 @@ databaseChangeLog:
                   name: id
                   type: numeric
               - column:
-                  name: skill_level_name
+                  name: name
                   type: varchar
               - column:
                   name: min_hires_for_level
                   type: numeric
-
-
-  - changeSet:
-      id: load-login-data
-      author: chanakan.beem
-      changes:
-        - loadData:
-            file: db/changelog/changes/data/login.csv
-            tableName: login
-            separator: ","
-            quotchar: '"'
-            encoding: UTF-8
-            columns:
               - column:
-                  name: username
-                  type: string
+                  name: create_at
+                  type: DATETIME
               - column:
-                  name: password
-                  type: string
-
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-person-data
@@ -77,8 +71,14 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  name: person_id
+                  name: id
                   type: numeric
+              - column:
+                  name: username
+                  type: varchar
+              - column:
+                  name: password
+                  type: varchar
               - column:
                   name: email
                   type: varchar
@@ -93,7 +93,7 @@ databaseChangeLog:
                   type: varchar
               - column:
                   name: phone_number
-                  type: numeric
+                  type: varchar
               - column:
                   name: address
                   type: varchar
@@ -104,8 +104,14 @@ databaseChangeLog:
                   name: account_status
                   type: varchar
               - column:
-                  name: username
-                  type: varchar
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-party_role-data
@@ -122,14 +128,11 @@ databaseChangeLog:
                   name: id
                   type: numeric
               - column:
-                  name: dtype
+                  name: role
                   type: varchar
               - column:
                   name: person_id
                   type: numeric
-              - column:
-                  name: admin_status
-                  type: varchar
               - column:
                   name: balance
                   type: numeric
@@ -145,6 +148,15 @@ databaseChangeLog:
               - column:
                   name: daily_rate
                   type: varchar
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
 
   - changeSet:
@@ -159,7 +171,7 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  name: skill_id
+                  name: id
                   type: numeric
               - column:
                   name: housekeeper_id
@@ -176,6 +188,15 @@ databaseChangeLog:
               - column:
                   name: price_per_day
                   type: numeric
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-hire-data
@@ -189,13 +210,13 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  name: hire_id
+                  name: id
                   type: numeric
               - column:
-                  name: hire_name
+                  name: name
                   type: varchar
               - column:
-                  name: hire_detail
+                  name: detail
                   type: varchar
               - column:
                   name: payment_amount
@@ -227,6 +248,15 @@ databaseChangeLog:
               - column:
                   name: skill_type_id
                   type: numeric
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-review-data
@@ -240,7 +270,7 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  name: review_id
+                  name: id
                   type: numeric
               - column:
                   name: review_message
@@ -254,6 +284,15 @@ databaseChangeLog:
               - column:
                   name: hire_id
                   type: numeric
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
   - changeSet:
       id: load-transaction-data
       author: chanakan.beem
@@ -266,35 +305,44 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  name: transaction_id
+                  name: id
                   type: numeric
               - column:
-                  name: transaction_type
+                  name: type
                   type: varchar
               - column:
-                  name: transaction_amount
+                  name: amount
                   type: numeric
               - column:
-                  name: transaction_date
+                  name: date
                   type: DATETIME
               - column:
-                  name: transaction_status
+                  name: status
                   type: varchar
               - column:
-                  name: member_id
+                  name: party_role_id
                   type: numeric
               - column:
                   name: prompay_number
-                  type: numeric
+                  type: varchar
               - column:
                   name: bank_account_number
-                  type: numeric
+                  type: varchar
               - column:
                   name: bank_account_name
                   type: varchar
               - column:
                   name: transaction_approval_date
                   type: DATETIME
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-penalty-data
@@ -308,7 +356,7 @@ databaseChangeLog:
             encoding: UTF-8
             columns:
               - column:
-                  name: penalty_id
+                  name: id
                   type: numeric
               - column:
                   name: penalty_type
@@ -322,6 +370,18 @@ databaseChangeLog:
               - column:
                   name: penalty_status
                   type: varchar
+              - column:
+                  name: report_id
+                  type: numeric
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: load-report-data
@@ -331,11 +391,11 @@ databaseChangeLog:
             file: db/changelog/changes/data/report.csv
             tableName: report
             separator: ","
-            quotchar: "\""
+            quotchar: '"'
             encoding: UTF-8
             columns:
               - column:
-                  name: report_id
+                  name: id
                   type: numeric
               - column:
                   name: report_title
@@ -356,31 +416,37 @@ databaseChangeLog:
                   name: hire_id
                   type: numeric
               - column:
-                  name: penalty_id
-                  type: numeric
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
 
   - changeSet:
       id: reset-sequences
       author: chanakan.beem
       changes:
         - sql:
-            sql: SELECT setval('skill_type_skill_type_id_seq', (SELECT COALESCE(MAX(skill_type_id), 0) + 1 FROM skill_type), false);
+            sql: SELECT setval('skill_type_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM skill_type), false);
         - sql:
             sql: SELECT setval('skill_level_tier_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM skill_level_tier), false);
         - sql:
-            sql: SELECT setval('person_person_id_seq', (SELECT COALESCE(MAX(person_id), 0) + 1 FROM person), false);
+            sql: SELECT setval('person_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM person), false);
         - sql:
             sql: SELECT setval('party_role_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM party_role), false);
         - sql:
-            sql: SELECT setval('housekeeper_skill_skill_id_seq', (SELECT COALESCE(MAX(skill_id), 0) + 1 FROM housekeeper_skill), false);
+            sql: SELECT setval('housekeeper_skill_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM housekeeper_skill), false);
         - sql:
-            sql: SELECT setval('hire_hire_id_seq', (SELECT COALESCE(MAX(hire_id), 0) + 1 FROM hire), false);
+            sql: SELECT setval('hire_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM hire), false);
         - sql:
-            sql: SELECT setval('review_review_id_seq', (SELECT COALESCE(MAX(review_id), 0) + 1 FROM review), false);
+            sql: SELECT setval('review_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM review), false);
         - sql:
-            sql: SELECT setval('transactions_transaction_id_seq', (SELECT COALESCE(MAX(transaction_id), 0) + 1 FROM transactions), false);
+            sql: SELECT setval('transactions_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM transactions), false);
         - sql:
-            sql: SELECT setval('penalty_penalty_id_seq', (SELECT COALESCE(MAX(penalty_id), 0) + 1 FROM penalty), false);
+            sql: SELECT setval('penalty_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM penalty), false);
         - sql:
-            sql: SELECT setval('report_report_id_seq', (SELECT COALESCE(MAX(report_id), 0) + 1 FROM report), false);
+            sql: SELECT setval('report_id_seq', (SELECT COALESCE(MAX(id), 0) + 1 FROM report), false);
 

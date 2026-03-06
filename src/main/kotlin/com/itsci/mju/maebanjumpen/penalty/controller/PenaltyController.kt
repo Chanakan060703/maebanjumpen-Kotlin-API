@@ -13,11 +13,11 @@ class PenaltyController(private val penaltyService: PenaltyService) {
     @PostMapping
     fun createPenalty(
         @RequestBody penaltyDTO: PenaltyDTO,
-        @RequestParam("reportId") reportId: Int,
-        @RequestParam(value = "hirerId", required = false) hirerId: Int?,
-        @RequestParam(value = "housekeeperId", required = false) housekeeperId: Int?
+        @RequestParam("reportId") reportId: Long,
+        @RequestParam(value = "hirerId", required = false) hirerId: Long?,
+        @RequestParam(value = "housekeeperId", required = false) housekeeperId: Long?
     ): ResponseEntity<PenaltyDTO> {
-        val targetRoleId: Int? = when {
+        val targetRoleId: Long? = when {
             hirerId != null -> hirerId
             housekeeperId != null -> housekeeperId
             else -> {
@@ -47,7 +47,7 @@ class PenaltyController(private val penaltyService: PenaltyService) {
     }
 
     @GetMapping("/{id}")
-    fun getPenaltyById(@PathVariable id: Int): ResponseEntity<PenaltyDTO> {
+    fun getPenaltyById(@PathVariable id: Long): ResponseEntity<PenaltyDTO> {
         val penalty = penaltyService.getPenaltyById(id)
         return if (penalty != null) {
             ResponseEntity(penalty, HttpStatus.OK)
@@ -57,7 +57,7 @@ class PenaltyController(private val penaltyService: PenaltyService) {
     }
 
     @PutMapping("/{id}")
-    fun updatePenalty(@PathVariable id: Int, @RequestBody penaltyDTO: PenaltyDTO): ResponseEntity<PenaltyDTO> {
+    fun updatePenalty(@PathVariable id: Long, @RequestBody penaltyDTO: PenaltyDTO): ResponseEntity<PenaltyDTO> {
         return try {
             val updatedPenalty = penaltyService.updatePenalty(id, penaltyDTO)
             ResponseEntity(updatedPenalty, HttpStatus.OK)
@@ -69,7 +69,7 @@ class PenaltyController(private val penaltyService: PenaltyService) {
     }
 
     @DeleteMapping("/{id}")
-    fun deletePenalty(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deletePenalty(@PathVariable id: Long): ResponseEntity<Void> {
         return try {
             penaltyService.deletePenalty(id)
             ResponseEntity(HttpStatus.NO_CONTENT)

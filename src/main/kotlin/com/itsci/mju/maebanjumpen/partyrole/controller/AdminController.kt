@@ -11,7 +11,7 @@ class AdminController(private val adminService: AdminService) {
 
     @GetMapping
     fun getAllAdmins(): ResponseEntity<List<AdminDTO>> {
-        val admins = adminService.getAllAdmins()
+        val admins = adminService.listAllAdmins()
         return ResponseEntity.ok(admins)
     }
 
@@ -23,7 +23,7 @@ class AdminController(private val adminService: AdminService) {
 
     @PostMapping
     fun createAdmin(@RequestBody admin: AdminDTO): ResponseEntity<AdminDTO> {
-        val savedAdmin = adminService.saveAdmin(admin)
+        val savedAdmin = adminService.createAdmin(admin)
         return ResponseEntity.ok(savedAdmin)
     }
 

@@ -10,23 +10,23 @@ import java.time.LocalDateTime
 data class Transaction(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Int? = null,
+    var id: Long? = null,
 
-    @Column(name = "transaction_type", nullable = false, length = 255)
+    @Column(name = "type", nullable = false, length = 255)
     var transactionType: String = "",
 
-    @Column(nullable = false)
+    @Column(name = "amount", nullable = false)
     var transactionAmount: Double = 0.0,
 
-    @Column(name = "transaction_date", nullable = false)
+    @Column(name = "date", nullable = false)
     var transactionDate: LocalDateTime? = null,
 
-    @Column(name = "transaction_status", nullable = false, length = 255)
+    @Column(name = "status", nullable = false, length = 255)
     var transactionStatus: String = "",
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    var member: Member? = null,
+    @JoinColumn(name = "party_role_id", nullable = false)
+    var partyRole: PartyRole? = null,
 
     @Column(name = "prompay_number", length = 50)
     var prompayNumber: String? = null,
@@ -38,7 +38,16 @@ data class Transaction(
     var bankAccountName: String? = null,
 
     @Column(name = "transaction_approval_date")
-    var transactionApprovalDate: LocalDateTime? = null
+    var transactionApprovalDate: LocalDateTime? = null,
+
+    @Column(name = "create_at")
+    var createAt: LocalDateTime? = null,
+
+    @Column(name = "update_at")
+    var updateAt: LocalDateTime? = null,
+
+    @Column(name = "is_delete")
+    var isDelete: Boolean? = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

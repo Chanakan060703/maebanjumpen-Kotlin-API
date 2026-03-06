@@ -12,7 +12,7 @@ open class Member(
     open var balance: Double? = 0.0,
 
     @JsonIgnore
-    @OneToMany(mappedBy = "member", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "partyRole", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     open var transactions: MutableSet<Transaction> = mutableSetOf()
 ) : PartyRole() {
     override fun equals(other: Any?): Boolean {

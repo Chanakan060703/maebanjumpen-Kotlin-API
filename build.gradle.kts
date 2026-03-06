@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -34,7 +35,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // Liquibase
+    implementation ("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
     implementation("org.liquibase:liquibase-core")
 
     // Kotlin

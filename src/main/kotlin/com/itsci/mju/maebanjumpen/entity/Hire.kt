@@ -1,6 +1,7 @@
 package com.itsci.mju.maebanjumpen.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -14,10 +15,10 @@ data class Hire(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = 0,
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     var hireName: String = "",
 
-    @Column(nullable = false)
+    @Column(name = "detail", nullable = false)
     var hireDetail: String = "",
 
     @Column(nullable = false)
@@ -41,9 +42,6 @@ data class Hire(
     @Column(nullable = false)
     var jobStatus: String = "",
 
-    @ElementCollection
-    var progressionImageUrls: MutableList<String> = mutableListOf(),
-
     @Column(name = "hirer_id", insertable = false, updatable = false)
     var hirerId: Long? = null,
 
@@ -66,7 +64,16 @@ data class Hire(
     var skillType: SkillType? = null,
 
     @OneToOne(mappedBy = "hire", fetch = FetchType.LAZY)
-    var review: Review? = null
+    var review: Review? = null,
+
+    @Column(name = "create_at")
+    var createAt: java.time.LocalDateTime? = null,
+
+    @Column(name = "update_at")
+    var updateAt: java.time.LocalDateTime? = null,
+
+    @Column(name = "is_delete")
+    var isDelete: Boolean? = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -80,5 +87,19 @@ data class Hire(
     override fun hashCode(): Int = id?.hashCode() ?: 0
 
     override fun toString(): String = "Hire(hireId=$id, hireName='$hireName', jobStatus='$jobStatus')"
-}
 
+    fun toHireDTO(): HireDTO {
+        return HireDTO(
+            id = id,
+            hireName = hireName,
+            hireDetail = hireDetail,
+            paymentAmount = paymentAmount,
+            hireDate = hireDate,
+            startDate = startDate,
+            startTime = startTime,
+            endTime = endTime,
+            location = location,
+            jobStatus = jobStatus
+        )
+    }
+}

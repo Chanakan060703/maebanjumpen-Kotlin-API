@@ -8,9 +8,8 @@ open class Housekeeper(
     @Column(name = "photo_verify_url")
     open var photoVerifyUrl: String? = null,
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status_verify")
-    open var statusVerify: VerifyStatus? = VerifyStatus.PENDING,
+    open var statusVerify: String? = VerifyStatus.PENDING.name,
 
     @Column(name = "rating")
     open var rating: Double? = 0.0,
@@ -26,7 +25,7 @@ open class Housekeeper(
 ) : Member() {
 
     enum class VerifyStatus {
-        PENDING, APPROVED, REJECTED, VERIFIED, NOT_VERIFIED
+        PENDING, APPROVE, REJECT
     }
 
     override fun equals(other: Any?): Boolean {

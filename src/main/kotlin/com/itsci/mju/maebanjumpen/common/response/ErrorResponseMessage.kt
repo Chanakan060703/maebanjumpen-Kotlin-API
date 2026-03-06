@@ -1,4 +1,4 @@
-package com.luca.intern.common.response
+package com.itsci.mju.maebanjumpen.common.response
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.util.*

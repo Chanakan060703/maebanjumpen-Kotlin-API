@@ -6,12 +6,12 @@ import java.util.Optional
 
 interface HousekeeperSkillService {
     fun getAllHousekeeperSkills(): List<HousekeeperDTO>
-    fun getHousekeeperSkillById(id: Int): HousekeeperSkillDTO?
+    fun getHousekeeperSkillById(id: Long): HousekeeperSkillDTO?
     fun saveHousekeeperSkill(housekeeperSkillDto: HousekeeperSkillDTO): HousekeeperSkillDTO
-    fun deleteHousekeeperSkill(id: Int)
-    fun getSkillsByHousekeeperId(housekeeperId: Int): Optional<HousekeeperSkillDTO>
-    fun updateHousekeeperSkill(id: Int, skillDto: HousekeeperSkillDTO): HousekeeperSkillDTO
-    fun updateSkillLevelAndHiresCompleted(housekeeperId: Int, skillTypeId: Int)
-    fun findByHousekeeperIdAndSkillTypeId(housekeeperId: Int, skillTypeId: Int): Optional<HousekeeperSkillDTO>
+    fun deleteHousekeeperSkill(id: Long)
+    fun getSkillsByHousekeeperId(housekeeperId: Long): Optional<HousekeeperSkillDTO>
+    fun updateHousekeeperSkill(id: Long, skillDto: HousekeeperSkillDTO): HousekeeperSkillDTO
+    fun updateSkillLevelAndHiresCompleted(housekeeperId: Long, skillTypeId: Int)
+    fun findByHousekeeperIdAndSkillTypeId(housekeeperId: Long, skillTypeId: Int): Optional<HousekeeperSkillDTO>
 }
 

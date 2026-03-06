@@ -35,31 +35,29 @@ class ReportServiceImpl @Autowired internal constructor(
   private fun mapPartyRoleToDto(partyRole: PartyRole): PartyRoleDTO {
     return when (partyRole) {
       is Hirer -> HirerDTO().apply {
-        id = partyRole.id?.toInt()
+        id = partyRole.id
         balance = partyRole.balance
       }
       is Housekeeper -> HousekeeperDTO().apply {
-        id = partyRole.id?.toInt()
+        id = partyRole.id
         balance = partyRole.balance
         photoVerifyUrl = partyRole.photoVerifyUrl
-        statusVerify = partyRole.statusVerify?.name
+        statusVerify = partyRole.statusVerify
         rating = partyRole.rating
         dailyRate = partyRole.dailyRate
       }
       is Admin -> AdminDTO().apply {
-        id = partyRole.id?.toInt()
-        adminStatus = partyRole.adminStatus
+        id = partyRole.id
       }
       is AccountManager -> AccountManagerDTO().apply {
-        id = partyRole.id?.toInt()
-        managerID = partyRole.managerID?.toInt()
+        id = partyRole.id
       }
       is Member -> MemberDTO().apply {
-        id = partyRole.id?.toInt()
+        id = partyRole.id
         balance = partyRole.balance
       }
       else -> MemberDTO().apply {
-        id = partyRole.id?.toInt()
+        id = partyRole.id
       }
     }
   }

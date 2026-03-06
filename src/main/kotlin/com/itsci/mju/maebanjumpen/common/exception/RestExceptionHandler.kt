@@ -1,7 +1,7 @@
-package com.luca.intern.common.exception
+package com.itsci.mju.maebanjumpen.common.exception
 
-import com.luca.intern.common.response.ErrorResponseMessage
-import com.luca.intern.common.response.HttpResponse
+import com.itsci.mju.maebanjumpen.common.response.ErrorResponseMessage
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus

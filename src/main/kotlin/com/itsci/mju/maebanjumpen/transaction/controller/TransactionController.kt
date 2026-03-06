@@ -28,14 +28,14 @@ class TransactionController(
     }
 
     @GetMapping("/transactions/{id}")
-    fun getTransactionById(@PathVariable id: Int): ResponseEntity<TransactionDTO> {
+    fun getTransactionById(@PathVariable id: Long): ResponseEntity<TransactionDTO> {
         val transaction = transactionService.getTransactionById(id)
         return transaction.map { ResponseEntity.ok(it) }
             .orElseGet { ResponseEntity.notFound().build() }
     }
 
     @GetMapping(value = ["/transactions"], params = ["memberId"])
-    fun getTransactionsByMemberId(@RequestParam memberId: Int): ResponseEntity<List<TransactionDTO>> {
+    fun getTransactionsByMemberId(@RequestParam memberId: Long): ResponseEntity<List<TransactionDTO>> {
         val transactions = transactionService.getTransactionsByMemberId(memberId)
         return if (transactions.isEmpty()) {
             ResponseEntity.noContent().build()
@@ -45,7 +45,7 @@ class TransactionController(
     }
 
     @GetMapping("/transactions/{transactionId}/status")
-    fun getTransactionStatus(@PathVariable transactionId: Int): ResponseEntity<Map<String, String>> {
+    fun getTransactionStatus(@PathVariable transactionId: Long): ResponseEntity<Map<String, String>> {
         val optionalTransaction = transactionService.getTransactionById(transactionId)
 
         return if (optionalTransaction.isPresent) {
@@ -80,7 +80,7 @@ class TransactionController(
 
     @PatchMapping("/transactions/{transactionId}/status")
     fun updateTransactionStatus(
-        @PathVariable transactionId: Int,
+        @PathVariable transactionId: Long,
         @RequestBody requestBody: Map<String, String>
     ): ResponseEntity<Map<String, String>> {
         return try {
@@ -109,7 +109,7 @@ class TransactionController(
     }
 
     @PutMapping("/transactions/{id}")
-    fun updateTransaction(@PathVariable id: Int, @RequestBody transactionDto: TransactionDTO): ResponseEntity<TransactionDTO?> {
+    fun updateTransaction(@PathVariable id: Long, @RequestBody transactionDto: TransactionDTO): ResponseEntity<TransactionDTO?> {
         if (transactionService.getTransactionById(id).isEmpty) {
             return ResponseEntity.notFound().build()
         }
@@ -125,7 +125,7 @@ class TransactionController(
     }
 
     @DeleteMapping("/transactions/{id}")
-    fun deleteTransaction(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deleteTransaction(@PathVariable id: Long): ResponseEntity<Void> {
         return try {
             transactionService.deleteTransaction(id)
             ResponseEntity.noContent().build()

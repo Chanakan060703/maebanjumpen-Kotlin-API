@@ -5,7 +5,6 @@ import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import java.time.LocalDateTime
 
 data class TransactionDTO(
-    var id: Long? = 0,
     var transactionType: String? = null,
     var transactionAmount: Double? = null,
     var transactionDate: LocalDateTime? = null,
@@ -16,5 +15,7 @@ data class TransactionDTO(
     var bankAccountNumber: String? = null,
     var bankAccountName: String? = null,
     var transactionApprovalDate: LocalDateTime? = null
-)
+) {
+    var transactionId: Long? = null
+}
 

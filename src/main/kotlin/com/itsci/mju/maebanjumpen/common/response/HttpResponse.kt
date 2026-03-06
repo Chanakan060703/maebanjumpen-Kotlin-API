@@ -1,5 +1,4 @@
-package com.luca.intern.common.response
-
+package com.itsci.mju.maebanjumpen.common.response
 data class HttpResponse(
   val status: Boolean,
   val message: String,

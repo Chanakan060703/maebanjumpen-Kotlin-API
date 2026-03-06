@@ -4,9 +4,9 @@ import com.itsci.mju.maebanjumpen.partyrole.dto.PartyRoleDTO
 
 interface PartyRoleService {
     fun savePartyRole(partyRoleDto: PartyRoleDTO): PartyRoleDTO
-    fun getPartyRoleById(id: Int): PartyRoleDTO?
+    fun getPartyRoleById(id: Long): PartyRoleDTO?
     fun getAllPartyRoles(): List<PartyRoleDTO>
-    fun updatePartyRole(id: Int, partyRoleDto: PartyRoleDTO): PartyRoleDTO
-    fun deletePartyRole(id: Int)
+    fun updatePartyRole(id: Long, partyRoleDto: PartyRoleDTO): PartyRoleDTO
+    fun deletePartyRole(id: Long)
 }
 

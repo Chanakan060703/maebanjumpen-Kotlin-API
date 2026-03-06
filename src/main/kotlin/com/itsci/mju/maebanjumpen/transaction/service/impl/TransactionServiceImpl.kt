@@ -2,7 +2,7 @@ package com.itsci.mju.maebanjumpen.transaction.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.itsci.mju.maebanjumpen.entity.Transaction
-import com.itsci.mju.maebanjumpen.mapper.TransactionMapper
+import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.MemberRepository
 import com.itsci.mju.maebanjumpen.transaction.dto.TransactionDTO
 import com.itsci.mju.maebanjumpen.transaction.repository.TransactionRepository
@@ -18,18 +18,51 @@ import java.util.Optional
 @Service
 class TransactionServiceImpl(
     private val transactionRepository: TransactionRepository,
-    private val memberRepository: MemberRepository,
-    private val transactionMapper: TransactionMapper
+    private val memberRepository: MemberRepository
 ) : TransactionService {
 
-    private fun initializeTransactionMemberAndRelated(transaction: Transaction?) {
-        if (transaction?.member != null) {
-            Hibernate.initialize(transaction.member)
-            val member = transaction.member!!
+    private fun mapTransactionToDto(transaction: Transaction): TransactionDTO {
+        return TransactionDTO(
+            transactionType = transaction.transactionType,
+            transactionAmount = transaction.transactionAmount,
+            transactionDate = transaction.transactionDate,
+            transactionStatus = transaction.transactionStatus,
+            member = (transaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member)?.let { member ->
+                MemberDTO().apply {
+                    id = member.id
+                    balance = member.balance
+                }
+            },
+            prompayNumber = transaction.prompayNumber,
+            bankAccountNumber = transaction.bankAccountNumber,
+            bankAccountName = transaction.bankAccountName,
+            transactionApprovalDate = transaction.transactionApprovalDate
+        ).apply {
+            transactionId = transaction.id
+        }
+    }
 
-            member.person?.let { person ->
+    private fun mapDtoToTransaction(dto: TransactionDTO): Transaction {
+        return Transaction(
+            id = dto.transactionId,
+            transactionType = dto.transactionType ?: "",
+            transactionAmount = dto.transactionAmount ?: 0.0,
+            transactionDate = dto.transactionDate,
+            transactionStatus = dto.transactionStatus ?: "",
+            prompayNumber = dto.prompayNumber,
+            bankAccountNumber = dto.bankAccountNumber,
+            bankAccountName = dto.bankAccountName,
+            transactionApprovalDate = dto.transactionApprovalDate
+        )
+    }
+
+    private fun initializeTransactionMemberAndRelated(transaction: Transaction?) {
+        if (transaction?.partyRole != null) {
+            Hibernate.initialize(transaction.partyRole)
+            val partyRole = transaction.partyRole!!
+
+            partyRole.person?.let { person ->
                 Hibernate.initialize(person)
-                person.login?.let { Hibernate.initialize(it) }
             }
         }
     }
@@ -38,14 +71,14 @@ class TransactionServiceImpl(
     override fun getAllTransactions(): List<TransactionDTO> {
         val transactions = transactionRepository.findAll()
         transactions.forEach { initializeTransactionMemberAndRelated(it) }
-        return transactionMapper.toDtoList(transactions)
+        return transactions.map { mapTransactionToDto(it) }
     }
 
     @Transactional(readOnly = true)
-    override fun getTransactionById(id: Int): Optional<TransactionDTO> {
+    override fun getTransactionById(id: Long): Optional<TransactionDTO> {
         val transactionOptional = transactionRepository.findById(id)
         transactionOptional.ifPresent { initializeTransactionMemberAndRelated(it) }
-        return transactionOptional.map { transactionMapper.toDto(it) }
+        return transactionOptional.map { mapTransactionToDto(it) }
     }
 
     @Transactional
@@ -59,8 +92,8 @@ class TransactionServiceImpl(
         val existingMember = memberRepository.findById(memberId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found with ID: $memberId") }
 
-        val transaction = transactionMapper.toEntity(transactionDto)
-        transaction.member = existingMember
+        val transaction = mapDtoToTransaction(transactionDto)
+        transaction.partyRole = existingMember
 
         if (transaction.transactionDate == null) {
             transaction.transactionDate = LocalDateTime.now()
@@ -76,11 +109,11 @@ class TransactionServiceImpl(
         }
 
         var oldStatus: String? = null
-        transaction.transactionId?.let { id ->
+        transaction.id?.let { id ->
             transactionRepository.findById(id).ifPresent { oldStatus = it.transactionStatus }
         }
 
-        if (transaction.transactionStatus.isNullOrEmpty()) {
+        if (transaction.transactionStatus.isEmpty()) {
             transaction.transactionStatus = when {
                 "Deposit".equals(transaction.transactionType, ignoreCase = true) -> "Pending Payment"
                 "Withdrawal".equals(transaction.transactionType, ignoreCase = true) -> "Pending Approve"
@@ -98,15 +131,15 @@ class TransactionServiceImpl(
         }
 
         val savedTransaction = transactionRepository.save(transaction)
-        val savedStatusEnglish = savedTransaction.transactionStatus?.uppercase() ?: ""
+        val savedStatusEnglish = savedTransaction.transactionStatus.uppercase()
 
         if ((savedStatusEnglish == "APPROVED" || savedStatusEnglish == "SUCCESS") &&
             !(oldStatus?.uppercase() == "APPROVED" || oldStatus?.uppercase() == "SUCCESS")) {
 
-            val memberToUpdate = savedTransaction.member
+            val memberToUpdate = savedTransaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member
             if (memberToUpdate != null) {
                 val currentBalance = memberToUpdate.balance ?: 0.0
-                val transactionAmount = savedTransaction.transactionAmount ?: 0.0
+                val transactionAmount = savedTransaction.transactionAmount
 
                 if ("Withdrawal".equals(savedTransaction.transactionType, ignoreCase = true)) {
                     if (currentBalance >= transactionAmount) {
@@ -126,11 +159,11 @@ class TransactionServiceImpl(
         }
 
         initializeTransactionMemberAndRelated(savedTransaction)
-        return transactionMapper.toDto(savedTransaction)
+        return mapTransactionToDto(savedTransaction)
     }
 
     @Transactional
-    override fun deleteTransaction(id: Int) {
+    override fun deleteTransaction(id: Long) {
         if (!transactionRepository.existsById(id)) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with ID: $id")
         }
@@ -138,10 +171,10 @@ class TransactionServiceImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getTransactionsByMemberId(memberId: Int): List<TransactionDTO> {
-        val transactions = transactionRepository.findByMemberId(memberId)
+    override fun getTransactionsByMemberId(memberId: Long): List<TransactionDTO> {
+        val transactions = transactionRepository.findByPartyRoleId(memberId)
         transactions.forEach { initializeTransactionMemberAndRelated(it) }
-        return transactionMapper.toDtoList(transactions)
+        return transactions.map { mapTransactionToDto(it) }
     }
 
     @Transactional(readOnly = true)
@@ -150,16 +183,16 @@ class TransactionServiceImpl(
         withdrawalTransactions.forEach { initializeTransactionMemberAndRelated(it) }
 
         val sortedTransactions = withdrawalTransactions.sortedWith(compareBy<Transaction> { transaction ->
-            val status = transaction.transactionStatus?.lowercase() ?: ""
+            val status = transaction.transactionStatus.lowercase()
             val isPending = status == "pending approve" || status == "กำลังรอตรวจสอบ"
             if (isPending) 0 else 1
         }.thenByDescending { it.transactionDate ?: LocalDateTime.MIN })
 
-        return transactionMapper.toDtoList(sortedTransactions)
+        return sortedTransactions.map { mapTransactionToDto(it) }
     }
 
     @Transactional
-    override fun updateWithdrawalRequestStatus(transactionId: Int, newStatus: String): Optional<TransactionDTO> {
+    override fun updateWithdrawalRequestStatus(transactionId: Long, newStatus: String): Optional<TransactionDTO> {
         return transactionRepository.findById(transactionId).map { existingTransaction ->
             val oldStatus = existingTransaction.transactionStatus
 
@@ -172,15 +205,15 @@ class TransactionServiceImpl(
             }
 
             val savedTransaction = transactionRepository.save(existingTransaction)
-            val savedStatusEnglish = savedTransaction.transactionStatus?.uppercase() ?: ""
+            val savedStatusEnglish = savedTransaction.transactionStatus.uppercase()
 
             if ((savedStatusEnglish == "APPROVED" || savedStatusEnglish == "SUCCESS") &&
-                !(oldStatus?.uppercase() == "APPROVED" || oldStatus?.uppercase() == "SUCCESS")) {
+                !(oldStatus.uppercase() == "APPROVED" || oldStatus.uppercase() == "SUCCESS")) {
 
-                val memberToUpdate = savedTransaction.member
+                val memberToUpdate = savedTransaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member
                 if (memberToUpdate != null) {
                     val currentBalance = memberToUpdate.balance ?: 0.0
-                    val transactionAmount = savedTransaction.transactionAmount ?: 0.0
+                    val transactionAmount = savedTransaction.transactionAmount
 
                     if ("Withdrawal".equals(savedTransaction.transactionType, ignoreCase = true)) {
                         if (currentBalance >= transactionAmount) {
@@ -199,7 +232,7 @@ class TransactionServiceImpl(
                 }
             }
             initializeTransactionMemberAndRelated(savedTransaction)
-            transactionMapper.toDto(savedTransaction)
+            mapTransactionToDto(savedTransaction)
         }
     }
 
@@ -214,15 +247,15 @@ class TransactionServiceImpl(
             throw IllegalArgumentException("Metadata 'transaction_id' is missing from Omise payload.")
         }
 
-        val optionalTransaction = transactionRepository.findById(ourTransactionId.toInt())
+        val optionalTransaction = transactionRepository.findById(ourTransactionId.toLong())
 
         if (optionalTransaction.isPresent) {
             val transaction = optionalTransaction.get()
             val oldStatus = transaction.transactionStatus
 
-            if (transaction.member?.id == null) {
-                System.err.println("Error: Member not found or invalid ID for transaction ID: $ourTransactionId")
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Member associated with transaction not found.")
+            if (transaction.partyRole?.id == null) {
+                System.err.println("Error: PartyRole not found or invalid ID for transaction ID: $ourTransactionId")
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "PartyRole associated with transaction not found.")
             }
 
             when {
@@ -230,7 +263,7 @@ class TransactionServiceImpl(
                     transaction.transactionStatus = "SUCCESS"
                     transaction.transactionApprovalDate = LocalDateTime.now()
 
-                    val member = transaction.member
+                    val member = transaction.partyRole as? com.itsci.mju.maebanjumpen.entity.Member
                     if (member != null) {
                         if (!listOf("SUCCESS", "APPROVED").any { it.equals(oldStatus, ignoreCase = true) }) {
                             val amountInBaht = amountInSatang / 100.0

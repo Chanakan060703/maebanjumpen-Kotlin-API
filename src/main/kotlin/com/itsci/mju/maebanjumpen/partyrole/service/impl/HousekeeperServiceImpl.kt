@@ -1,11 +1,9 @@
 package com.itsci.mju.maebanjumpen.partyrole.service.impl
 
 import com.itsci.mju.maebanjumpen.entity.Housekeeper
-import com.itsci.mju.maebanjumpen.exception.HousekeeperNotFoundException
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
 import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperDetailDTO
-import com.itsci.mju.maebanjumpen.mapper.HousekeeperMapper
-import com.itsci.mju.maebanjumpen.mapper.PersonMapper
+import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.HousekeeperRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.HousekeeperService
@@ -16,14 +14,56 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class HousekeeperServiceImpl(
-    private val housekeeperMapper: HousekeeperMapper,
     private val housekeeperRepository: HousekeeperRepository,
-    private val personMapper: PersonMapper,
     private val personRepository: PersonRepository
 ) : HousekeeperService {
 
     @Value("\${app.public-base-url}")
     private lateinit var publicBaseUrl: String
+
+    private fun mapHousekeeperToDto(housekeeper: Housekeeper): HousekeeperDTO {
+        return HousekeeperDTO().apply {
+            id = housekeeper.id
+            balance = housekeeper.balance
+            photoVerifyUrl = housekeeper.photoVerifyUrl
+            statusVerify = housekeeper.statusVerify
+            rating = housekeeper.rating
+            dailyRate = housekeeper.dailyRate
+            housekeeperSkills = housekeeper.housekeeperSkills?.map { hs ->
+                HousekeeperSkillDTO(
+                    id = hs.id,
+                    housekeeperId = hs.housekeeper?.id?.toInt(),
+                    skillTypeId = hs.skillType?.id?.toInt(),
+                    skillLevelTierId = hs.skillLevelTier?.id?.toInt(),
+                    pricePerDay = hs.pricePerDay,
+                    totalHiresCompleted = hs.totalHiresCompleted
+                )
+            }?.toSet()
+        }
+    }
+
+    private fun mapHousekeeperToDetailDto(housekeeper: Housekeeper): HousekeeperDetailDTO {
+        return HousekeeperDetailDTO(
+            detailId = housekeeper.id,
+            detailBalance = housekeeper.balance,
+            detailPhotoVerifyUrl = housekeeper.photoVerifyUrl,
+            detailStatusVerify = housekeeper.statusVerify,
+            detailRating = housekeeper.rating,
+            detailDailyRate = housekeeper.dailyRate?.toDoubleOrNull(),
+            detailHousekeeperSkills = housekeeper.housekeeperSkills?.map { hs ->
+                HousekeeperSkillDTO(
+                    id = hs.id,
+                    housekeeperId = hs.housekeeper?.id?.toInt(),
+                    skillTypeId = hs.skillType?.id?.toInt(),
+                    skillLevelTierId = hs.skillLevelTier?.id?.toInt(),
+                    pricePerDay = hs.pricePerDay,
+                    totalHiresCompleted = hs.totalHiresCompleted
+                )
+            }?.toSet(),
+            hires = housekeeper.hires?.map { hire -> hire.toHireDTO() },
+            reviews = null
+        )
+    }
 
     private fun buildFullImageUrl(filename: String?, folderName: String): String? {
         if (filename.isNullOrEmpty()) return null
@@ -55,17 +95,17 @@ class HousekeeperServiceImpl(
         val entities = housekeeperRepository.findAllWithPersonLoginAndSkills()
         return entities
             .map { transformHousekeeperUrls(it) }
-            .mapNotNull { it?.let { hk -> housekeeperMapper.toDto(hk) } }
+            .mapNotNull { it?.let { hk -> mapHousekeeperToDto(hk) } }
     }
 
     @Transactional(readOnly = true)
-    override fun getHousekeeperDetailById(id: Int): HousekeeperDetailDTO? {
+    override fun getHousekeeperDetailById(id: Long): HousekeeperDetailDTO? {
         val housekeeperOptional = housekeeperRepository.findByIdWithAllDetails(id)
         if (housekeeperOptional.isEmpty) return null
 
         val housekeeper = housekeeperOptional.get()
         val transformedHousekeeper = transformHousekeeperUrls(housekeeper)
-        val detailDto = housekeeperMapper.toDetailDto(transformedHousekeeper!!)
+        val detailDto = mapHousekeeperToDetailDto(transformedHousekeeper!!)
 
         detailDto.hires?.let { transformHireHirerUrls(it) }
 
@@ -82,29 +122,33 @@ class HousekeeperServiceImpl(
     @Transactional
     override fun saveHousekeeper(housekeeperDto: HousekeeperDTO): HousekeeperDTO {
         housekeeperDto.person?.login?.username?.let { username ->
-            if (personRepository.findByLoginUsername(username).isPresent) {
+            if (personRepository.findByUsername(username).isPresent) {
                 throw IllegalStateException("User with username '$username' already exists. Cannot create duplicate Housekeeper.")
             }
         }
 
-        val housekeeper = housekeeperMapper.toEntity(housekeeperDto)
-
-        housekeeper.person?.let { personRepository.save(it) }
+        val housekeeper = Housekeeper().apply {
+            balance = housekeeperDto.balance
+            photoVerifyUrl = housekeeperDto.photoVerifyUrl
+            statusVerify = housekeeperDto.statusVerify
+            rating = housekeeperDto.rating
+            dailyRate = housekeeperDto.dailyRate
+        }
 
         if (housekeeper.statusVerify == null) {
-            housekeeper.statusVerify = Housekeeper.VerifyStatus.NOT_VERIFIED
+            housekeeper.statusVerify = Housekeeper.VerifyStatus.PENDING.name
         }
 
         val savedHousekeeper = housekeeperRepository.save(housekeeper)
         val transformedHousekeeper = transformHousekeeperUrls(savedHousekeeper)
 
-        return housekeeperMapper.toDto(transformedHousekeeper!!)
+        return mapHousekeeperToDto(transformedHousekeeper!!)
     }
 
     @Transactional
-    override fun updateHousekeeper(id: Int, housekeeperDto: HousekeeperDTO): HousekeeperDTO {
+    override fun updateHousekeeper(id: Long, housekeeperDto: HousekeeperDTO): HousekeeperDTO {
         val existingHousekeeper = housekeeperRepository.findById(id)
-            .orElseThrow { HousekeeperNotFoundException("Housekeeper with ID $id not found.") }
+            .orElseThrow { RuntimeException("Housekeeper with ID $id not found.") }
 
         if (housekeeperDto.person != null && existingHousekeeper.person != null) {
             val existingPerson = existingHousekeeper.person!!
@@ -125,16 +169,16 @@ class HousekeeperServiceImpl(
         val updatedHousekeeper = housekeeperRepository.save(existingHousekeeper)
         val transformedHousekeeper = transformHousekeeperUrls(updatedHousekeeper)
 
-        return housekeeperMapper.toDto(transformedHousekeeper!!)
+        return mapHousekeeperToDto(transformedHousekeeper!!)
     }
 
     @Transactional
-    override fun deleteHousekeeper(id: Int) {
+    override fun deleteHousekeeper(id: Long) {
         housekeeperRepository.deleteById(id)
     }
 
     @Transactional
-    override fun calculateAndSetAverageRating(housekeeperId: Int) {
+    override fun calculateAndSetAverageRating(housekeeperId: Long) {
         val housekeeperOptional = housekeeperRepository.findById(housekeeperId)
 
         if (housekeeperOptional.isPresent) {
@@ -154,9 +198,9 @@ class HousekeeperServiceImpl(
     }
 
     @Transactional
-    override fun addBalance(housekeeperId: Int, amount: Double) {
+    override fun addBalance(housekeeperId: Long, amount: Double) {
         val housekeeper = housekeeperRepository.findById(housekeeperId)
-            .orElseThrow { HousekeeperNotFoundException("Housekeeper with ID $housekeeperId not found.") }
+            .orElseThrow { RuntimeException("Housekeeper with ID $housekeeperId not found.") }
 
         val currentBalance = housekeeper.balance ?: 0.0
         housekeeper.balance = currentBalance + amount
@@ -165,9 +209,9 @@ class HousekeeperServiceImpl(
     }
 
     @Transactional
-    override fun deductBalance(housekeeperId: Int, amount: Double) {
+    override fun deductBalance(housekeeperId: Long, amount: Double) {
         val housekeeper = housekeeperRepository.findById(housekeeperId)
-            .orElseThrow { HousekeeperNotFoundException("Housekeeper with ID $housekeeperId not found.") }
+            .orElseThrow { RuntimeException("Housekeeper with ID $housekeeperId not found.") }
 
         val currentBalance = housekeeper.balance ?: 0.0
         if (currentBalance < amount) {
@@ -183,7 +227,7 @@ class HousekeeperServiceImpl(
         val entities = housekeeperRepository.findByStatusVerifyWithDetails(status)
         return entities
             .map { transformHousekeeperUrls(it) }
-            .mapNotNull { it?.let { hk -> housekeeperMapper.toDto(hk) } }
+            .mapNotNull { it?.let { hk -> mapHousekeeperToDto(hk) } }
     }
 
     @Transactional(readOnly = true)
@@ -191,7 +235,7 @@ class HousekeeperServiceImpl(
         val entities = housekeeperRepository.findNotVerifiedOrNullStatusHousekeepersWithDetails()
         return entities
             .map { transformHousekeeperUrls(it) }
-            .mapNotNull { it?.let { hk -> housekeeperMapper.toDto(hk) } }
+            .mapNotNull { it?.let { hk -> mapHousekeeperToDto(hk) } }
     }
 }
 

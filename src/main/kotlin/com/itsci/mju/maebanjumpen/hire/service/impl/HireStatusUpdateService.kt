@@ -14,7 +14,7 @@ class HireStatusUpdateService(
 ) {
 
     @Transactional
-    fun revertStatus(hireId: Int) {
+    fun revertStatus(hireId: Long) {
         val hireToUpdate = hireRepository.findById(hireId).orElse(null)
 
         val latestStatus = hireToUpdate?.jobStatus
@@ -34,7 +34,7 @@ class HireStatusUpdateService(
         }
     }
 
-    fun scheduleStatusRevert(hireId: Int, delayInSeconds: Long) {
+    fun scheduleStatusRevert(hireId: Long, delayInSeconds: Long) {
         println("⏳ Scheduled Hire ID $hireId to revert status to 'Completed' in $delayInSeconds seconds.")
 
         taskScheduler.schedule({

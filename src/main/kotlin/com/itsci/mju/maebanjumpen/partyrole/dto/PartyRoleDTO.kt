@@ -19,7 +19,7 @@ import com.itsci.mju.maebanjumpen.person.dto.PersonDTO
     JsonSubTypes.Type(value = MemberDTO::class, name = "member")
 )
 abstract class PartyRoleDTO {
-    open var id: Int? = null
+    open var id: Long? = null
     open var person: PersonDTO? = null
     open var username: String? = null
 

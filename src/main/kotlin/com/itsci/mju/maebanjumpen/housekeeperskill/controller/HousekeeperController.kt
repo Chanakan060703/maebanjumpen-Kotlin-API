@@ -17,7 +17,7 @@ class HousekeeperController(private val housekeeperService: HousekeeperService) 
     }
 
     @GetMapping("/{id}")
-    fun getHousekeeperDetailById(@PathVariable id: Int): ResponseEntity<HousekeeperDetailDTO> {
+    fun getHousekeeperDetailById(@PathVariable id: Long): ResponseEntity<HousekeeperDetailDTO> {
         val housekeeper = housekeeperService.getHousekeeperDetailById(id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(housekeeper)
@@ -42,14 +42,13 @@ class HousekeeperController(private val housekeeperService: HousekeeperService) 
     }
 
     @PutMapping("/{id}")
-    fun updateHousekeeper(@PathVariable id: Int, @RequestBody housekeeper: HousekeeperDTO): ResponseEntity<HousekeeperDTO> {
+    fun updateHousekeeper(@PathVariable id: Long, @RequestBody housekeeper: HousekeeperDTO): ResponseEntity<HousekeeperDTO> {
         val updatedHousekeeper = housekeeperService.updateHousekeeper(id, housekeeper)
-            ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(updatedHousekeeper)
     }
 
     @DeleteMapping("/{id}")
-    fun deleteHousekeeper(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deleteHousekeeper(@PathVariable id: Long): ResponseEntity<Void> {
         housekeeperService.deleteHousekeeper(id)
         return ResponseEntity.noContent().build()
     }

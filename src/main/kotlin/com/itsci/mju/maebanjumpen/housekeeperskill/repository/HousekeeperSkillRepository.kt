@@ -6,10 +6,10 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface HousekeeperSkillRepository : JpaRepository<HousekeeperSkill, Int> {
+interface HousekeeperSkillRepository : JpaRepository<HousekeeperSkill, Long> {
 
-    fun findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId: Int, skillTypeId: Int): Optional<HousekeeperSkill>
+    fun findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId: Long, skillTypeId: Int): Optional<HousekeeperSkill>
 
-    fun findByHousekeeperId(housekeeperId: Int): Optional<HousekeeperSkill>
+    fun findByHousekeeperId(housekeeperId: Long): Optional<HousekeeperSkill>
 }
 

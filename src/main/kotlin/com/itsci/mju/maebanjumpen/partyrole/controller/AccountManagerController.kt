@@ -11,30 +11,30 @@ class AccountManagerController(private val accountManagerService: AccountManager
 
     @GetMapping
     fun getAllAccountManagers(): ResponseEntity<List<AccountManagerDTO>> {
-        val accountManagers = accountManagerService.getAllAccountManagers()
+        val accountManagers = accountManagerService.listAllAccountManagers()
         return ResponseEntity.ok(accountManagers)
     }
 
     @GetMapping("/{id}")
-    fun getAccountManagerById(@PathVariable id: Int): ResponseEntity<AccountManagerDTO> {
+    fun getAccountManagerById(@PathVariable id: Long): ResponseEntity<AccountManagerDTO> {
         val accountManager = accountManagerService.getAccountManagerById(id)
         return ResponseEntity.ok(accountManager)
     }
 
     @PostMapping
     fun createAccountManager(@RequestBody accountManager: AccountManagerDTO): ResponseEntity<AccountManagerDTO> {
-        val savedAccountManager = accountManagerService.saveAccountManager(accountManager)
+        val savedAccountManager = accountManagerService.createAccountManager(accountManager)
         return ResponseEntity.ok(savedAccountManager)
     }
 
     @PutMapping("/{id}")
-    fun updateAccountManager(@PathVariable id: Int, @RequestBody accountManager: AccountManagerDTO): ResponseEntity<AccountManagerDTO> {
+    fun updateAccountManager(@PathVariable id: Long, @RequestBody accountManager: AccountManagerDTO): ResponseEntity<AccountManagerDTO> {
         val updatedAccountManager = accountManagerService.updateAccountManager(id, accountManager)
         return ResponseEntity.ok(updatedAccountManager)
     }
 
     @DeleteMapping("/{id}")
-    fun deleteAccountManager(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deleteAccountManager(@PathVariable id: Long): ResponseEntity<Void> {
         accountManagerService.deleteAccountManager(id)
         return ResponseEntity.noContent().build()
     }

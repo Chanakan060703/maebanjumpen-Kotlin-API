@@ -16,7 +16,7 @@ class PersonController(private val personService: PersonService) {
     }
 
     @GetMapping("/{id}")
-    fun getPersonById(@PathVariable id: Int): ResponseEntity<PersonDTO> {
+    fun getPersonById(@PathVariable id: Long): ResponseEntity<PersonDTO> {
         val person = personService.getPersonById(id)
         return ResponseEntity.ok(person)
     }
@@ -28,20 +28,20 @@ class PersonController(private val personService: PersonService) {
     }
 
     @PutMapping("/{id}")
-    fun updatePerson(@PathVariable id: Int, @RequestBody person: PersonDTO): ResponseEntity<PersonDTO> {
+    fun updatePerson(@PathVariable id: Long, @RequestBody person: PersonDTO): ResponseEntity<PersonDTO> {
         val updatedPerson = personService.updatePerson(id, person)
         return ResponseEntity.ok(updatedPerson)
     }
 
     @DeleteMapping("/{id}")
-    fun deletePerson(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deletePerson(@PathVariable id: Long): ResponseEntity<Void> {
         personService.deletePerson(id)
         return ResponseEntity.noContent().build()
     }
 
     @PutMapping("/{id}/update-picture-url")
     fun updatePersonPictureUrl(
-        @PathVariable id: Int,
+        @PathVariable id: Long,
         @RequestParam newBaseUrl: String
     ): ResponseEntity<PersonDTO> {
         val updatedPerson = personService.updatePersonPictureUrl(id, newBaseUrl)

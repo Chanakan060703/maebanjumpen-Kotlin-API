@@ -4,11 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.*
 
 @Entity
-@DiscriminatorValue("accountmanager")
+@DiscriminatorValue("acmanager")
 @JsonIgnoreProperties("hibernateLazyInitializer", "handler")
-open class AccountManager(
-    open val managerID: Long? = 0,
-) : PartyRole() {
+open class AccountManager : PartyRole() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is AccountManager) return false

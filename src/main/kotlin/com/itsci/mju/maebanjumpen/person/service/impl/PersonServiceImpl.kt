@@ -1,164 +1,124 @@
 package com.itsci.mju.maebanjumpen.person.service.impl
 
-import com.itsci.mju.maebanjumpen.entity.Login
-import com.itsci.mju.maebanjumpen.entity.Person
-import com.itsci.mju.maebanjumpen.login.dto.LoginDTO
-import com.itsci.mju.maebanjumpen.login.repository.LoginRepository
-import com.itsci.mju.maebanjumpen.person.dto.PersonDTO
-import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
-import com.itsci.mju.maebanjumpen.person.service.PersonService
+
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import java.util.regex.Pattern
 
 @Service
-@Transactional(readOnly = true)
-class PersonServiceImpl(
-    private val personRepository: PersonRepository,
-    private val loginRepository: LoginRepository
-) : PersonService {
+class PersonServiceImpl @Autowired constructor(
+  private val bCryptPasswordEncoder: BCryptPasswordEncoder,
+  private val userRepository: UserRepository,
+  private val platformRepository: PlatformRepository,
+  private val userTypeRepository: UserTypeRepository,
+  cryptPasswordEncoder: BCryptPasswordEncoder,
+) : UserService {
 
-    private fun mapPersonToDto(person: Person): PersonDTO {
-        return PersonDTO(
-            id = person.id,
-            email = person.email,
-            firstName = person.firstName,
-            lastName = person.lastName,
-            idCardNumber = person.idCardNumber,
-            phoneNumber = person.phoneNumber,
-            address = person.address,
-            pictureUrl = person.pictureUrl,
-            accountStatus = person.accountStatus,
-            login = person.login?.let { LoginDTO(username = it.username, password = null) }
-        )
+  override fun getUserById(userId: Long): UserMeDto {
+    return userRepository.getUserById(userId)
+  }
+
+  override fun createAdmin(createAdmin: CreateAdminDto, userType: Int) {
+
+    val user = userRepository.findByUsernameAndEmail(createAdmin.username)
+
+    if (user.isPresent) {
+      throw BadRequestException("Username is already exist")
+    }
+    if (createAdmin.password.isEmpty()) {
+      throw BadRequestException("Password is not empty")
+    }
+    platformRepository.findById(createAdmin.platform).orElseThrow{
+      throw NotFoundException("Not found this Platform")
     }
 
-    private fun mapDtoToEntity(dto: PersonDTO): Person {
-        return Person(
-            id = dto.id,
-            email = dto.email,
-            firstName = dto.firstName,
-            lastName = dto.lastName,
-            idCardNumber = dto.idCardNumber,
-            phoneNumber = dto.phoneNumber,
-            address = dto.address,
-            pictureUrl = dto.pictureUrl,
-            accountStatus = dto.accountStatus,
-            login = dto.login?.let { Login(username = it.username ?: "", password = it.password ?: "") }
-        )
+    val userData = User(
+      username = createAdmin.username,
+      password = bCryptPasswordEncoder.encode(createAdmin.password),
+      firstName = createAdmin.firstName,
+      lastName = createAdmin.lastName,
+      emailVerified = true,
+      email = createAdmin.email,
+      status = true,
+      phoneVerified = false,
+      userTypeId = userType.toLong(),
+      platformId = createAdmin.platform
+    )
+
+    userRepository.save(userData)
+
+  }
+
+  override fun findAllAdmin(
+    pageable: Pageable,
+    ascending: Boolean,
+    searchTerm: String?,
+    sortField: String?
+  ): Page<AdminListDto> {
+    return userRepository.findAllAdmin(
+      pageable,
+      ascending,
+      searchTerm,
+      sortField,
+    )
+  }
+
+  override fun deleteAdmin(id: Int) {
+    userRepository.deleteById(id.toLong())
+  }
+
+  override fun updateUserMe(id: Int, updateUserDto: UpdateMeDto) {
+    val user = userRepository.findById(id.toLong()).orElseThrow{
+      NotFoundException("User does not exist")
     }
 
-    override fun getAllPersons(): List<PersonDTO> {
-        return personRepository.findAll().map { mapPersonToDto(it) }
+    user.firstName = updateUserDto.firstName
+    user.lastName = updateUserDto.lastName
+    user.phoneNumber = updateUserDto.phoneNumber
+
+    userRepository.save(user)
+  }
+
+  override fun updatePassword(id: Int, updatePasswordDto: UpdatePasswordDto) {
+    val user = userRepository.findById(id.toLong()).orElseThrow{
+      NotFoundException("User does not found")
     }
 
-    override fun getPersonById(id: Long): PersonDTO? {
-        return personRepository.findById(id)
-            .map { mapPersonToDto(it) }
-            .orElse(null)
+    if (bCryptPasswordEncoder.matches(updatePasswordDto.oldPassword, user.password)) {
+      user.password = bCryptPasswordEncoder.encode(updatePasswordDto.newPassword)
+      userRepository.save(user)
+    } else {
+      throw BadRequestException("Old password is incorrect")
+    }
+  }
+
+  override fun editAdmin(id: Int, editAdminDto: EditAdminDto) {
+    val user = userRepository.findById(id.toLong()).orElseThrow{
+      throw NotFoundException("User does not found")
     }
 
-    override fun getPersonByUsername(username: String): PersonDTO? {
-        return personRepository.findByLoginUsername(username)
-            .map { mapPersonToDto(it) }
-            .orElse(null)
+    if (user.userType!!.id != UserRoleEnum.ROLE_ADMIN.value) {
+      throw NotFoundException("User is not Admin")
     }
 
-    @Transactional
-    override fun savePerson(personDto: PersonDTO): PersonDTO {
-        val person = mapDtoToEntity(personDto)
+    user.firstName = editAdminDto.firstName
+    user.lastName = editAdminDto.lastName
 
-        if (person.login != null && person.login?.username != null) {
-            val existingLogin = loginRepository.findById(person.login!!.username)
+    userRepository.save(user)
+  }
 
-            if (existingLogin.isPresent) {
-                person.login = existingLogin.get()
-            }
-        }
-
-        val savedPerson = personRepository.save(person)
-        return mapPersonToDto(savedPerson)
-    }
-
-    @Transactional
-    override fun updatePerson(id: Long, personDto: PersonDTO): PersonDTO {
-        val existingPerson = personRepository.findById(id)
-            .orElseThrow { RuntimeException("Person with ID $id not found") }
-
-        personDto.email?.let { existingPerson.email = it }
-        personDto.firstName?.let { existingPerson.firstName = it }
-        personDto.lastName?.let { existingPerson.lastName = it }
-        personDto.idCardNumber?.let { existingPerson.idCardNumber = it }
-        personDto.phoneNumber?.let { existingPerson.phoneNumber = it }
-        personDto.address?.let { existingPerson.address = it }
-        personDto.pictureUrl?.let { existingPerson.pictureUrl = it }
-        personDto.accountStatus?.let { existingPerson.accountStatus = it }
-
-        if (personDto.login != null && personDto.login?.username != null) {
-            val currentLoginOptional = loginRepository.findById(personDto.login!!.username!!)
-
-            if (currentLoginOptional.isPresent) {
-                existingPerson.login = currentLoginOptional.get()
-            } else {
-                val newLogin = mapDtoToEntity(personDto).login
-                if (newLogin != null) {
-                    loginRepository.save(newLogin)
-                    existingPerson.login = newLogin
-                }
-            }
-        }
-
-        val updatedPerson = personRepository.save(existingPerson)
-        return mapPersonToDto(updatedPerson)
-    }
-
-    @Transactional
-    override fun updatePersonPictureUrl(id: Long, newBaseUrl: String): PersonDTO? {
-        return personRepository.findById(id).map { person ->
-            val oldPictureUrl = person.pictureUrl
-            if (!oldPictureUrl.isNullOrEmpty()) {
-                val lastSlashIndex = oldPictureUrl.indexOf("/maeban/files")
-                if (lastSlashIndex != -1) {
-                    val pathAndFile = oldPictureUrl.substring(lastSlashIndex)
-                    val newPictureUrl = newBaseUrl + pathAndFile
-                    person.pictureUrl = newPictureUrl
-                    return@map mapPersonToDto(personRepository.save(person))
-                }
-            }
-            mapPersonToDto(person)
-        }.orElse(null)
-    }
-
-    @Transactional
-    override fun deletePerson(id: Long) {
-        personRepository.deleteById(id)
-    }
-
-    @Transactional
-    override fun updateAccountStatus(personId: Long, newStatus: String) {
-        val existingPerson = personRepository.findById(personId)
-            .orElseThrow { RuntimeException("Person not found with ID: $personId") }
-
-        if (newStatus.isNotBlank()) {
-            existingPerson.accountStatus = newStatus
-            personRepository.save(existingPerson)
-        }
-    }
-
-    @Transactional
-    override fun updateAllPersonPictureUrls(newBaseUrl: String) {
-        val allPersons = personRepository.findAll()
-        for (person in allPersons) {
-            val oldPictureUrl = person.pictureUrl
-            if (!oldPictureUrl.isNullOrEmpty()) {
-                val lastSlashIndex = oldPictureUrl.indexOf("/maeban/files")
-                if (lastSlashIndex != -1) {
-                    val pathAndFile = oldPictureUrl.substring(lastSlashIndex)
-                    val newPictureUrl = newBaseUrl + pathAndFile
-                    person.pictureUrl = newPictureUrl
-                }
-            }
-        }
-        personRepository.saveAll(allPersons)
-    }
+  fun isValidEmail(str: String): Boolean {
+    return Pattern.compile(
+      "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
+          "\\@" +
+          "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+          "(" +
+          "\\." +
+          "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
+          ")+"
+    ).matcher(str).matches()
+  }
 }
-

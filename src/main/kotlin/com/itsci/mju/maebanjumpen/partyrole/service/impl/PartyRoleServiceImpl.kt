@@ -1,7 +1,7 @@
 package com.itsci.mju.maebanjumpen.partyrole.service.impl
 
-import com.itsci.mju.maebanjumpen.mapper.PartyRoleMapper
-import com.itsci.mju.maebanjumpen.partyrole.dto.PartyRoleDTO
+import com.itsci.mju.maebanjumpen.entity.*
+import com.itsci.mju.maebanjumpen.partyrole.dto.*
 import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.PartyRoleService
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
@@ -11,59 +11,92 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class PartyRoleServiceImpl(
     private val partyRoleRepository: PartyRoleRepository,
-    private val partyRoleMapper: PartyRoleMapper,
     private val personRepository: PersonRepository
 ) : PartyRoleService {
 
+    private fun mapPartyRoleToDto(partyRole: PartyRole): PartyRoleDTO {
+        return when (partyRole) {
+            is Hirer -> HirerDTO().apply {
+                id = partyRole.id
+                balance = partyRole.balance
+            }
+            is Housekeeper -> HousekeeperDTO().apply {
+                id = partyRole.id
+                balance = partyRole.balance
+                photoVerifyUrl = partyRole.photoVerifyUrl
+                statusVerify = partyRole.statusVerify
+                rating = partyRole.rating
+                dailyRate = partyRole.dailyRate
+            }
+            is Admin -> AdminDTO().apply {
+                id = partyRole.id
+            }
+            is AccountManager -> AccountManagerDTO().apply {
+                id = partyRole.id
+                managerID = partyRole.id
+            }
+            is Member -> MemberDTO().apply {
+                id = partyRole.id
+                balance = partyRole.balance
+            }
+            else -> throw IllegalArgumentException("Unknown PartyRole type: ${partyRole::class.simpleName}")
+        }
+    }
+
     @Transactional
     override fun savePartyRole(partyRoleDto: PartyRoleDTO): PartyRoleDTO {
-        if (partyRoleDto.person?.personId == null) {
+        if (partyRoleDto.person?.id == null) {
             throw IllegalArgumentException("Person ID is required to create a PartyRole.")
         }
 
-        val personId = partyRoleDto.person!!.personId!!
+        val personId = partyRoleDto.person!!.id!!
         val existingPerson = personRepository.findById(personId)
             .orElseThrow { RuntimeException("Person ID: $personId not found. Failed to link PartyRole.") }
 
-        val partyRole = partyRoleMapper.toEntity(partyRoleDto)
-            ?: throw IllegalArgumentException("Failed to convert PartyRoleDTO to entity.")
+        val partyRole = when (partyRoleDto) {
+            is HirerDTO -> Hirer().apply { balance = partyRoleDto.balance }
+            is HousekeeperDTO -> Housekeeper().apply {
+                balance = partyRoleDto.balance
+                photoVerifyUrl = partyRoleDto.photoVerifyUrl
+                statusVerify = partyRoleDto.statusVerify?.let { Housekeeper.VerifyStatus.valueOf(it) }
+                rating = partyRoleDto.rating
+                dailyRate = partyRoleDto.dailyRate
+            }
+            is AdminDTO -> Admin()
+            is AccountManagerDTO -> AccountManager()
+            is MemberDTO -> Member().apply { balance = partyRoleDto.balance }
+            else -> throw IllegalArgumentException("Unknown PartyRoleDTO type: ${partyRoleDto::class.simpleName}")
+        }
         partyRole.person = existingPerson
 
         val savedPartyRole = partyRoleRepository.save(partyRole)
-        return partyRoleMapper.toDto(savedPartyRole)
-            ?: throw IllegalStateException("Failed to convert saved PartyRole to DTO.")
+        return mapPartyRoleToDto(savedPartyRole)
     }
 
     @Transactional(readOnly = true)
-    override fun getPartyRoleById(id: Int): PartyRoleDTO? {
+    override fun getPartyRoleById(id: Long): PartyRoleDTO? {
         return partyRoleRepository.findById(id)
-            .map { partyRoleMapper.toDto(it) }
+            .map { mapPartyRoleToDto(it) }
             .orElse(null)
     }
 
     @Transactional(readOnly = true)
     override fun getAllPartyRoles(): List<PartyRoleDTO> {
         val partyRoles = partyRoleRepository.findAll()
-        return partyRoleMapper.toDtoList(partyRoles)
+        return partyRoles.map { mapPartyRoleToDto(it) }
     }
 
     @Transactional
-    override fun updatePartyRole(id: Int, partyRoleDto: PartyRoleDTO): PartyRoleDTO {
+    override fun updatePartyRole(id: Long, partyRoleDto: PartyRoleDTO): PartyRoleDTO {
         return partyRoleRepository.findById(id).map { existingPartyRole ->
-            val updatedDetails = partyRoleMapper.toEntity(partyRoleDto)
-
-            if (existingPartyRole.person != null && updatedDetails?.person != null) {
-                // Update logic can be added here
-            }
-
+            // Update logic can be added here based on type
             val savedRole = partyRoleRepository.save(existingPartyRole)
-            partyRoleMapper.toDto(savedRole)
-                ?: throw IllegalStateException("Failed to convert saved PartyRole to DTO.")
+            mapPartyRoleToDto(savedRole)
         }.orElseThrow { RuntimeException("PartyRole not found with ID: $id") }
     }
 
     @Transactional
-    override fun deletePartyRole(id: Int) {
+    override fun deletePartyRole(id: Long) {
         partyRoleRepository.deleteById(id)
     }
 }

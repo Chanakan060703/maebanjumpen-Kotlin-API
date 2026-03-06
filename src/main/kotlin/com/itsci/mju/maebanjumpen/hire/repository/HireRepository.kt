@@ -10,71 +10,17 @@ import java.util.Optional
 @Repository
 interface HireRepository : JpaRepository<Hire, Long> {
 
-    @Query("""
-        SELECT DISTINCT h FROM Hire h 
-        LEFT JOIN FETCH h.hirer hr 
-        LEFT JOIN FETCH hr.person hrp 
-        LEFT JOIN FETCH h.housekeeper hk 
-        LEFT JOIN FETCH hk.person hkp 
-        LEFT JOIN FETCH h.skillType st 
-        LEFT JOIN FETCH h.review r 
-        LEFT JOIN FETCH h.progressionImageUrls
-    """)
     fun findAllWithDetails(): List<Hire>
 
-    @Query("""
-        SELECT DISTINCT h FROM Hire h
-        LEFT JOIN FETCH h.hirer hr
-        LEFT JOIN FETCH hr.person hrp
-        LEFT JOIN FETCH h.housekeeper hk
-        LEFT JOIN FETCH hk.person hkp
-        LEFT JOIN FETCH h.skillType st
-        LEFT JOIN FETCH h.review r
-        LEFT JOIN FETCH h.progressionImageUrls
-        WHERE h.hireId = :id
-    """)
-    fun fetchByIdWithAllDetails(@Param("id") id: Long): Optional<Hire>
+    fun fetchByIdWithAllDetails(id: Long): Optional<Hire>
 
-    @Query("""
-        SELECT DISTINCT h FROM Hire h
-        LEFT JOIN FETCH h.hirer hr
-        LEFT JOIN FETCH hr.person hrp
-        LEFT JOIN FETCH h.housekeeper hk
-        LEFT JOIN FETCH hk.person hkp
-        LEFT JOIN FETCH h.skillType st
-        LEFT JOIN FETCH h.review r
-        LEFT JOIN FETCH h.progressionImageUrls
-        WHERE hr.id = :hirerId
-    """)
-    fun findByHirerIdWithDetails(@Param("hirerId") hirerId: Long): List<Hire>
+    fun findByHirerIdWithDetails(hirerId: Long): List<Hire>
 
-    @Query("""
-        SELECT DISTINCT h FROM Hire h
-        LEFT JOIN FETCH h.hirer hr
-        LEFT JOIN FETCH hr.person hrp
-        LEFT JOIN FETCH h.housekeeper hk
-        LEFT JOIN FETCH hk.person hkp
-        LEFT JOIN FETCH h.skillType st
-        LEFT JOIN FETCH h.review r
-        LEFT JOIN FETCH h.progressionImageUrls
-        WHERE hk.id = :housekeeperId
-    """)
-    fun findByHousekeeperIdWithDetails(@Param("housekeeperId") housekeeperId: Long): List<Hire>
+    fun findByHousekeeperIdWithDetails(housekeeperId: Long): List<Hire>
 
-    @Query("""
-        SELECT DISTINCT h FROM Hire h
-        LEFT JOIN FETCH h.hirer hr
-        LEFT JOIN FETCH hr.person hrp
-        LEFT JOIN FETCH h.housekeeper hk
-        LEFT JOIN FETCH hk.person hkp
-        LEFT JOIN FETCH h.skillType st
-        LEFT JOIN FETCH h.review r
-        LEFT JOIN FETCH h.progressionImageUrls
-        WHERE hk.id = :housekeeperId AND h.jobStatus = :jobStatus
-    """)
     fun findByHousekeeperIdAndJobStatusWithDetails(
-        @Param("housekeeperId") housekeeperId: Long,
-        @Param("jobStatus") jobStatus: String
+          housekeeperId: Long,
+          jobStatus: String
     ): List<Hire>
 }
 

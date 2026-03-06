@@ -9,6 +9,6 @@ data class PenaltyDTO(
     var penaltyDate: LocalDateTime? = null,
     var penaltyStatus: String? = null,
     // เพิ่ม Report ID เพื่อใช้ในการเชื่อมโยง/อัปเดตตรรกะใน Service
-    var reportId: Int? = null
+    var reportId: Long? = null
 )
 

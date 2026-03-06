@@ -12,20 +12,30 @@ data class Penalty(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = 0,
 
-    @Column(nullable = false)
+    @Column(name = "penalty_type", nullable = false)
     var penaltyType: String = "",
 
-    @Column(nullable = false)
+    @Column(name = "penalty_detail", nullable = false)
     var penaltyDetail: String = "",
 
-    @Column(nullable = false)
+    @Column(name = "penalty_date", nullable = false)
     var penaltyDate: LocalDateTime? = null,
 
-    @Column(nullable = false)
+    @Column(name = "penalty_status", nullable = false)
     var penaltyStatus: String = "",
 
-    @OneToOne(mappedBy = "penalty", fetch = FetchType.LAZY)
-    var report: Report? = null
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "report_id", nullable = false)
+    var report: Report? = null,
+
+    @Column(name = "create_at")
+    var createAt: LocalDateTime? = null,
+
+    @Column(name = "update_at")
+    var updateAt: LocalDateTime? = null,
+
+    @Column(name = "is_delete")
+    var isDelete: Boolean? = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

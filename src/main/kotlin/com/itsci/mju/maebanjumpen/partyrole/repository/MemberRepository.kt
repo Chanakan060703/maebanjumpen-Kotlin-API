@@ -10,16 +10,16 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface MemberRepository : JpaRepository<Member, Int> {
+interface MemberRepository : JpaRepository<Member, Long> {
 
     @EntityGraph(value = "Member.fullDetails", type = EntityGraph.EntityGraphType.LOAD)
-    override fun findById(id: Int): Optional<Member>
+    override fun findById(id: Long): Optional<Member>
 
     @EntityGraph(value = "Member.fullDetails", type = EntityGraph.EntityGraphType.LOAD)
     override fun findAll(): List<Member>
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select m from Member m where m.id = :id")
-    fun findByIdWithLock(id: Int): Optional<Member>
+    fun findByIdWithLock(id: Long): Optional<Member>
 }
 

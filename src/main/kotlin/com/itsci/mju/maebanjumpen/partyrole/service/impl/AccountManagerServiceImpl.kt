@@ -1,6 +1,6 @@
 package com.itsci.mju.maebanjumpen.partyrole.service.impl
 
-import com.itsci.mju.maebanjumpen.mapper.AccountManagerMapper
+import com.itsci.mju.maebanjumpen.entity.AccountManager
 import com.itsci.mju.maebanjumpen.partyrole.dto.AccountManagerDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.AccountManagerRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.AccountManagerService
@@ -8,37 +8,39 @@ import org.springframework.stereotype.Service
 
 @Service
 class AccountManagerServiceImpl(
-    private val accountManagerRepository: AccountManagerRepository,
-    private val accountManagerMapper: AccountManagerMapper
+    private val accountManagerRepository: AccountManagerRepository
 ) : AccountManagerService {
 
-    override fun getAllAccountManagers(): List<AccountManagerDTO> {
-        val entities = accountManagerRepository.findAll()
-        return accountManagerMapper.toDtoList(entities)
+    private fun mapAccountManagerToDto(am: AccountManager): AccountManagerDTO {
+        return AccountManagerDTO().apply {
+            id = am.id
+        }
     }
 
-    override fun getAccountManagerById(id: Int): AccountManagerDTO {
+    override fun listAllAccountManagers(): List<AccountManagerDTO> {
+        return accountManagerRepository.findAll().map { mapAccountManagerToDto(it) }
+    }
+
+    override fun getAccountManagerById(id: Long): AccountManagerDTO {
         val entity = accountManagerRepository.findById(id)
             .orElseThrow { NoSuchElementException("Account Manager not found with ID: $id") }
-        return accountManagerMapper.toDto(entity)
+        return mapAccountManagerToDto(entity)
     }
 
-    override fun saveAccountManager(accountManagerDto: AccountManagerDTO): AccountManagerDTO {
-        val entity = accountManagerMapper.toEntity(accountManagerDto)
+    override fun createAccountManager(accountManagerDto: AccountManagerDTO): AccountManagerDTO {
+        val entity = AccountManager()
         val savedEntity = accountManagerRepository.save(entity)
-        return accountManagerMapper.toDto(savedEntity)
+        return mapAccountManagerToDto(savedEntity)
     }
 
-    override fun updateAccountManager(id: Int, accountManagerDto: AccountManagerDTO): AccountManagerDTO {
+    override fun updateAccountManager(id: Long, accountManagerDto: AccountManagerDTO): AccountManagerDTO {
         val existingAccountManager = accountManagerRepository.findById(id)
             .orElseThrow { NoSuchElementException("Account Manager not found with ID: $id") }
-
-        existingAccountManager.managerID = accountManagerDto.managerID
         val updatedEntity = accountManagerRepository.save(existingAccountManager)
-        return accountManagerMapper.toDto(updatedEntity)
+        return mapAccountManagerToDto(updatedEntity)
     }
 
-    override fun deleteAccountManager(id: Int) {
+    override fun deleteAccountManager(id: Long) {
         if (!accountManagerRepository.existsById(id)) {
             throw NoSuchElementException("Account Manager not found with ID: $id")
         }

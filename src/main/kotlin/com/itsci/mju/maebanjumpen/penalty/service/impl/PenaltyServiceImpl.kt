@@ -1,6 +1,6 @@
 package com.itsci.mju.maebanjumpen.penalty.service.impl
 
-import com.itsci.mju.maebanjumpen.mapper.PenaltyMapper
+import com.itsci.mju.maebanjumpen.entity.Penalty
 import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.penalty.dto.PenaltyDTO
 import com.itsci.mju.maebanjumpen.penalty.repository.PenaltyRepository
@@ -13,33 +13,48 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(readOnly = true)
 class PenaltyServiceImpl(
-    private val penaltyMapper: PenaltyMapper,
     private val penaltyRepository: PenaltyRepository,
     private val reportRepository: ReportRepository,
     private val personService: PersonService,
     private val partyRoleRepository: PartyRoleRepository
 ) : PenaltyService {
 
-    override fun getAllPenalties(): List<PenaltyDTO> {
-        val penalties = penaltyRepository.findAll()
-        return penaltyMapper.toDtoList(penalties)
+    private fun mapPenaltyToDto(penalty: Penalty): PenaltyDTO {
+        return PenaltyDTO(
+            id = penalty.id,
+            penaltyType = penalty.penaltyType,
+            penaltyDetail = penalty.penaltyDetail,
+            penaltyDate = penalty.penaltyDate,
+            penaltyStatus = penalty.penaltyStatus,
+            reportId = penalty.report?.id
+        )
     }
 
-    override fun getPenaltyById(id: Int): PenaltyDTO? {
+    override fun getAllPenalties(): List<PenaltyDTO> {
+        val penalties = penaltyRepository.findAll()
+        return penalties.map { mapPenaltyToDto(it) }
+    }
+
+    override fun getPenaltyById(id: Long): PenaltyDTO? {
         return penaltyRepository.findById(id)
-            .map { penaltyMapper.toDto(it) }
+            .map { mapPenaltyToDto(it) }
             .orElse(null)
     }
 
-    @Deprecated("Use savePenalty(PenaltyDTO, Int) instead")
+    @Deprecated("Use savePenalty(PenaltyDTO, Long) instead")
     @Transactional
     override fun savePenalty(penaltyDto: PenaltyDTO): PenaltyDTO {
-        throw UnsupportedOperationException("Method savePenalty(PenaltyDTO) is deprecated. Use savePenalty(PenaltyDTO, Int) instead.")
+        throw UnsupportedOperationException("Method savePenalty(PenaltyDTO) is deprecated. Use savePenalty(PenaltyDTO, Long) instead.")
     }
 
     @Transactional
-    override fun savePenalty(penaltyDto: PenaltyDTO, targetRoleId: Int): PenaltyDTO {
-        val penalty = penaltyMapper.toEntity(penaltyDto)
+    override fun savePenalty(penaltyDto: PenaltyDTO, targetRoleId: Long): PenaltyDTO {
+        val penalty = Penalty().apply {
+            penaltyType = penaltyDto.penaltyType ?: ""
+            penaltyDetail = penaltyDto.penaltyDetail ?: ""
+            penaltyDate = penaltyDto.penaltyDate
+            penaltyStatus = penaltyDto.penaltyStatus ?: ""
+        }
         val savedPenalty = penaltyRepository.save(penalty)
 
         val reportId = penaltyDto.reportId
@@ -60,11 +75,11 @@ class PenaltyServiceImpl(
             System.err.println("Error: reportId is missing from PenaltyDTO. Cannot link Penalty to Report or update account status.")
         }
 
-        return penaltyMapper.toDto(savedPenalty)
+        return mapPenaltyToDto(savedPenalty)
     }
 
     @Transactional
-    private fun updateAccountStatus(targetRoleId: Int, penaltyType: String) {
+    private fun updateAccountStatus(targetRoleId: Long, penaltyType: String) {
         val optionalPartyRole = partyRoleRepository.findById(targetRoleId)
 
         if (optionalPartyRole.isPresent) {
@@ -72,8 +87,8 @@ class PenaltyServiceImpl(
             val personToUpdate = partyRole.person
 
             if (personToUpdate != null) {
-                personService.updateAccountStatus(personToUpdate.personId!!, penaltyType)
-                println("Updated person account status to: $penaltyType for person ID: ${personToUpdate.personId}")
+                personService.updateAccountStatus(personToUpdate.id!!, penaltyType)
+                println("Updated person account status to: $penaltyType for person ID: ${personToUpdate.id}")
             } else {
                 System.err.println("Error: Person object is missing for Role ID: $targetRoleId. Cannot update account status.")
             }
@@ -83,18 +98,18 @@ class PenaltyServiceImpl(
     }
 
     @Transactional
-    override fun deletePenalty(id: Int) {
+    override fun deletePenalty(id: Long) {
         val optionalPenalty = penaltyRepository.findById(id)
 
         if (optionalPenalty.isPresent) {
             val penaltyToDelete = optionalPenalty.get()
 
-            penaltyToDelete.report?.reportId?.let { reportId ->
+            penaltyToDelete.report?.id?.let { reportId ->
                 reportRepository.findById(reportId).ifPresent { report ->
                     report.penalty = null
                     report.reportStatus = "RESOLVED"
                     reportRepository.save(report)
-                    println("Penalty ID $id was unlinked from Report ID ${report.reportId}")
+                    println("Penalty ID $id was unlinked from Report ID ${report.id}")
                 }
             }
             penaltyRepository.delete(penaltyToDelete)
@@ -102,7 +117,7 @@ class PenaltyServiceImpl(
     }
 
     @Transactional
-    override fun updatePenalty(id: Int, penaltyDto: PenaltyDTO): PenaltyDTO {
+    override fun updatePenalty(id: Long, penaltyDto: PenaltyDTO): PenaltyDTO {
         val existingPenalty = penaltyRepository.findById(id)
             .orElseThrow { RuntimeException("Penalty not found with id: $id") }
 
@@ -120,7 +135,7 @@ class PenaltyServiceImpl(
             System.err.println("Warning: Skipping account status update in updatePenalty method because the target person ID cannot be reliably determined from the existing entities.")
         }
 
-        return penaltyMapper.toDto(updatedPenalty)
+        return mapPenaltyToDto(updatedPenalty)
     }
 }
 

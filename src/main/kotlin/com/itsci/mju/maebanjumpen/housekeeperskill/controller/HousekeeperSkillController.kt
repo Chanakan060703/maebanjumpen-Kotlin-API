@@ -18,7 +18,7 @@ class HousekeeperSkillController(private val housekeeperSkillService: Housekeepe
     }
 
     @GetMapping("/{id}")
-    fun getHousekeeperSkillById(@PathVariable id: Int): ResponseEntity<HousekeeperSkillDTO> {
+    fun getHousekeeperSkillById(@PathVariable id: Long): ResponseEntity<HousekeeperSkillDTO> {
         val skill = housekeeperSkillService.getHousekeeperSkillById(id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(skill)
@@ -39,7 +39,7 @@ class HousekeeperSkillController(private val housekeeperSkillService: Housekeepe
     }
 
     @PutMapping("/{id}")
-    fun updateHousekeeperSkill(@PathVariable id: Int, @RequestBody skillDto: HousekeeperSkillDTO): ResponseEntity<HousekeeperSkillDTO?> {
+    fun updateHousekeeperSkill(@PathVariable id: Long, @RequestBody skillDto: HousekeeperSkillDTO): ResponseEntity<HousekeeperSkillDTO?> {
         return try {
             val updatedSkill = housekeeperSkillService.updateHousekeeperSkill(id, skillDto)
             ResponseEntity.ok(updatedSkill)
@@ -51,7 +51,7 @@ class HousekeeperSkillController(private val housekeeperSkillService: Housekeepe
     }
 
     @DeleteMapping("/{id}")
-    fun deleteHousekeeperSkill(@PathVariable id: Int): ResponseEntity<Map<String, String>> {
+    fun deleteHousekeeperSkill(@PathVariable id: Long): ResponseEntity<Map<String, String>> {
         return try {
             if (housekeeperSkillService.getHousekeeperSkillById(id) == null) {
                 ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("status" to "error", "message" to "HousekeeperSkill not found with ID: $id"))

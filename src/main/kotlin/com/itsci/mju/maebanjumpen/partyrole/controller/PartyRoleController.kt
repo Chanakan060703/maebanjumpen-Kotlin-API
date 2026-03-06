@@ -17,7 +17,7 @@ class PartyRoleController(private val partyRoleService: PartyRoleService) {
     }
 
     @GetMapping("/{id}")
-    fun getPartyRole(@PathVariable id: Int): ResponseEntity<PartyRoleDTO> {
+    fun getPartyRole(@PathVariable id: Long): ResponseEntity<PartyRoleDTO> {
         val partyRole = partyRoleService.getPartyRoleById(id)
         return if (partyRole != null) {
             ResponseEntity.ok(partyRole)
@@ -39,14 +39,10 @@ class PartyRoleController(private val partyRoleService: PartyRoleService) {
     }
 
     @PutMapping("/{id}")
-    fun updatePartyRole(@PathVariable id: Int, @RequestBody partyRoleDto: PartyRoleDTO): ResponseEntity<PartyRoleDTO?> {
+    fun updatePartyRole(@PathVariable id: Long, @RequestBody partyRoleDto: PartyRoleDTO): ResponseEntity<PartyRoleDTO?> {
         return try {
             val updated = partyRoleService.updatePartyRole(id, partyRoleDto)
-            if (updated != null) {
-                ResponseEntity.ok(updated)
-            } else {
-                ResponseEntity.notFound().build()
-            }
+            ResponseEntity.ok(updated)
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest().body(null)
         } catch (e: Exception) {
@@ -55,7 +51,7 @@ class PartyRoleController(private val partyRoleService: PartyRoleService) {
     }
 
     @DeleteMapping("/{id}")
-    fun deletePartyRole(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deletePartyRole(@PathVariable id: Long): ResponseEntity<Void> {
         partyRoleService.deletePartyRole(id)
         return ResponseEntity.noContent().build()
     }

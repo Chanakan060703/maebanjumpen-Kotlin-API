@@ -11,9 +11,9 @@ interface TransactionRepository : JpaRepository<Transaction, Long> {
 
     fun findByTransactionTypeAndTransactionStatus(transactionType: String, transactionStatus: String): List<Transaction>
 
-    fun findByMemberId(memberId: Int): List<Transaction>
+    fun findByPartyRoleId(partyRoleId: Long): List<Transaction>
 
-    @EntityGraph(attributePaths = ["member", "member.person", "member.person.login"])
+    @EntityGraph(attributePaths = ["partyRole", "partyRole.person"])
     override fun findById(id: Long): Optional<Transaction>
 
     fun findByTransactionType(transactionType: String): List<Transaction>

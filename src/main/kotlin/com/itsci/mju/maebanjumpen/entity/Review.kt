@@ -1,14 +1,11 @@
 package com.itsci.mju.maebanjumpen.entity
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import com.itsci.mju.maebanjumpen.review.dto.ReviewDTO
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "review")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "reviewId")
 @NamedEntityGraph(
     name = "review-with-hire-details",
     attributeNodes = [
@@ -19,27 +16,20 @@ import java.time.LocalDateTime
             name = "hireSubgraph",
             attributeNodes = [
                 NamedAttributeNode(value = "hirer", subgraph = "hirerSubgraph"),
-                NamedAttributeNode(value = "housekeeper", subgraph = "housekeeperSubgraph"),
-                NamedAttributeNode(value = "progressionImageUrls")
+                NamedAttributeNode(value = "housekeeper", subgraph = "housekeeperSubgraph")
             ]
         ),
         NamedSubgraph(
             name = "hirerSubgraph",
             attributeNodes = [
-                NamedAttributeNode(value = "person", subgraph = "personSubgraph")
+                NamedAttributeNode(value = "person")
             ]
         ),
         NamedSubgraph(
             name = "housekeeperSubgraph",
             attributeNodes = [
-                NamedAttributeNode(value = "person", subgraph = "personSubgraph"),
+                NamedAttributeNode(value = "person"),
                 NamedAttributeNode(value = "housekeeperSkills")
-            ]
-        ),
-        NamedSubgraph(
-            name = "personSubgraph",
-            attributeNodes = [
-                NamedAttributeNode(value = "login")
             ]
         )
     ]
@@ -60,7 +50,16 @@ data class Review(
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hire_id", nullable = false, unique = true)
-    var hires: Hire? = null
+    var hire: Hire? = null,
+
+    @Column(name = "create_at")
+    var createAt: LocalDateTime? = null,
+
+    @Column(name = "update_at")
+    var updateAt: LocalDateTime? = null,
+
+    @Column(name = "is_delete")
+    var isDelete: Boolean? = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

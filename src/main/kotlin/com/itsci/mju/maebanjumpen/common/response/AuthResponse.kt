@@ -1,5 +1,4 @@
-package com.luca.intern.common.response
-
+package com.itsci.mju.maebanjumpen.common.response
 import java.sql.Timestamp
 
 data class AuthResponse(

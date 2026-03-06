@@ -17,7 +17,7 @@ class MemberController(private val memberService: MemberService) {
     }
 
     @GetMapping("/{id}")
-    fun getMemberById(@PathVariable id: Int): ResponseEntity<MemberDTO> {
+    fun getMemberById(@PathVariable id: Long): ResponseEntity<MemberDTO> {
         val member = memberService.getMemberById(id)
         return member.map { ResponseEntity.ok(it) }
             .orElseGet { ResponseEntity.notFound().build() }
@@ -36,7 +36,7 @@ class MemberController(private val memberService: MemberService) {
     }
 
     @PutMapping("/{id}")
-    fun updateMember(@PathVariable id: Int, @RequestBody memberDetails: MemberDTO): ResponseEntity<MemberDTO?> {
+    fun updateMember(@PathVariable id: Long, @RequestBody memberDetails: MemberDTO): ResponseEntity<MemberDTO?> {
         return try {
             val updatedMember = memberService.updateMember(id, memberDetails)
             ResponseEntity.ok(updatedMember)
@@ -48,7 +48,7 @@ class MemberController(private val memberService: MemberService) {
     }
 
     @DeleteMapping("/{id}")
-    fun deleteMember(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deleteMember(@PathVariable id: Long): ResponseEntity<Void> {
         return try {
             memberService.deleteMember(id)
             ResponseEntity.noContent().build()

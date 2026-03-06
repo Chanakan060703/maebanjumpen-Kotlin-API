@@ -6,10 +6,7 @@ import jakarta.persistence.*
 @Entity
 @DiscriminatorValue("admin")
 @JsonIgnoreProperties("hibernateLazyInitializer", "handler")
-open class Admin(
-    @Column(name = "admin_status", length = 255)
-    open var adminStatus: String? = null
-) : PartyRole() {
+open class Admin : PartyRole() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Admin) return false

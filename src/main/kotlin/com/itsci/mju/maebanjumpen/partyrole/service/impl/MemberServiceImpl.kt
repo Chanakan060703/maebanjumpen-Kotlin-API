@@ -1,7 +1,7 @@
 package com.itsci.mju.maebanjumpen.partyrole.service.impl
 
 import com.itsci.mju.maebanjumpen.entity.Housekeeper
-import com.itsci.mju.maebanjumpen.mapper.MemberMapper
+import com.itsci.mju.maebanjumpen.entity.Member
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.MemberRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.MemberService
@@ -12,71 +12,67 @@ import java.util.Optional
 
 @Service
 class MemberServiceImpl(
-    private val memberRepository: MemberRepository,
-    private val memberMapper: MemberMapper
+    private val memberRepository: MemberRepository
 ) : MemberService {
+
+    private fun mapMemberToDto(member: Member): MemberDTO {
+        return MemberDTO().apply {
+            id = member.id
+            balance = member.balance
+        }
+    }
 
     @Transactional
     override fun saveMember(memberDto: MemberDTO): MemberDTO {
-        val member = memberMapper.toEntity(memberDto)
+        val member = Member().apply { balance = memberDto.balance }
         val savedMember = memberRepository.save(member)
-        return memberMapper.toDto(savedMember)
+        return mapMemberToDto(savedMember)
     }
 
     @Transactional(readOnly = true)
-    override fun getMemberById(id: Int): Optional<MemberDTO> {
+    override fun getMemberById(id: Long): Optional<MemberDTO> {
         return memberRepository.findById(id)
-            .map { memberMapper.toDto(it) }
+            .map { mapMemberToDto(it) }
     }
 
     @Transactional(readOnly = true)
     override fun getAllMembers(): List<MemberDTO> {
         val members = memberRepository.findAll()
-        return memberMapper.toList(members)
+        return members.map { mapMemberToDto(it) }
     }
 
     @Transactional
-    override fun updateMember(id: Int, memberDto: MemberDTO): MemberDTO {
+    override fun updateMember(id: Long, memberDto: MemberDTO): MemberDTO {
         val existingMember = memberRepository.findById(id)
             .orElseThrow { RuntimeException("ไม่พบสมาชิกด้วย ID: $id") }
 
-        val memberDetails = memberMapper.toEntity(memberDto)
+        memberDto.balance?.let { existingMember.balance = it }
 
-        memberDetails.balance?.let { existingMember.balance = it }
+        if (existingMember.person != null && memberDto.person != null) {
+            val existingPerson = existingMember.person!!
+            existingPerson.email = memberDto.person?.email
+            existingPerson.firstName = memberDto.person?.firstName
+            existingPerson.lastName = memberDto.person?.lastName
+            existingPerson.idCardNumber = memberDto.person?.idCardNumber
+            existingPerson.phoneNumber = memberDto.person?.phoneNumber
+            existingPerson.address = memberDto.person?.address
+            existingPerson.pictureUrl = memberDto.person?.pictureUrl
 
-        if (existingMember.person != null && memberDetails.person != null) {
-            if (existingMember.person?.personId == memberDetails.person?.personId) {
-                val existingPerson = existingMember.person!!
-                val detailPerson = memberDetails.person!!
-
-                existingPerson.email = detailPerson.email
-                existingPerson.firstName = detailPerson.firstName
-                existingPerson.lastName = detailPerson.lastName
-                existingPerson.idCardNumber = detailPerson.idCardNumber
-                existingPerson.phoneNumber = detailPerson.phoneNumber
-                existingPerson.address = detailPerson.address
-                existingPerson.pictureUrl = detailPerson.pictureUrl
-
-                if (existingPerson.login != null && detailPerson.login?.password != null) {
-                    existingPerson.login?.password = detailPerson.login?.password ?: ""
-                }
-            } else {
-                throw IllegalArgumentException("ไม่สามารถเปลี่ยน Person ที่เชื่อมโยงกับ Member นี้ได้โดยตรง. Person ID ไม่ตรงกัน.")
+            if (existingPerson.login != null && memberDto.person?.login?.password != null) {
+                existingPerson.login?.password = memberDto.person?.login?.password ?: ""
             }
         }
 
-        if (existingMember is Housekeeper && memberDetails is Housekeeper) {
-            existingMember.photoVerifyUrl = memberDetails.photoVerifyUrl
-            memberDetails.statusVerify?.let { existingMember.statusVerify = it }
-            existingMember.dailyRate = memberDetails.dailyRate
+        if (existingMember is Housekeeper) {
+            // Handle Housekeeper-specific fields if needed
         }
 
         val updatedMember = memberRepository.save(existingMember)
-        return memberMapper.toDto(updatedMember)
+        return mapMemberToDto(updatedMember)
     }
 
     @Transactional
-    override fun deleteMember(id: Int) {
+    override fun deleteMember(id: Long) {
         if (!memberRepository.existsById(id)) {
             throw RuntimeException("ไม่พบสมาชิกด้วย ID: $id")
         }
@@ -84,7 +80,7 @@ class MemberServiceImpl(
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    override fun deductBalance(memberId: Int, amount: Double): MemberDTO {
+    override fun deductBalance(memberId: Long, amount: Double): MemberDTO {
         val optionalMember = memberRepository.findByIdWithLock(memberId)
 
         if (optionalMember.isEmpty) {
@@ -106,7 +102,7 @@ class MemberServiceImpl(
 
         member.balance = currentBalance - amount
         val savedMember = memberRepository.save(member)
-        return memberMapper.toDto(savedMember)
+        return mapMemberToDto(savedMember)
     }
 }
 

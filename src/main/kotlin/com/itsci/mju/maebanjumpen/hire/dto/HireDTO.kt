@@ -21,7 +21,6 @@ data class HireDTO(
     var endTime: LocalTime? = null,
     var location: String? = null,
     var jobStatus: String? = null,
-    var progressionImageUrls: List<String>? = null,
     var hirer: HirerDTO? = null,
     var housekeeper: HousekeeperDTO? = null,
     var skillType: SkillTypeDTO? = null,

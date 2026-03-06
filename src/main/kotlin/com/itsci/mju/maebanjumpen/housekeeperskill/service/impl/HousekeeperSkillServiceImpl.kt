@@ -1,12 +1,10 @@
 package com.itsci.mju.maebanjumpen.housekeeperskill.service.impl
 
+import com.itsci.mju.maebanjumpen.entity.HousekeeperSkill
 import com.itsci.mju.maebanjumpen.entity.SkillLevelTier
 import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
 import com.itsci.mju.maebanjumpen.housekeeperskill.repository.HousekeeperSkillRepository
 import com.itsci.mju.maebanjumpen.housekeeperskill.service.HousekeeperSkillService
-import com.itsci.mju.maebanjumpen.mapper.HousekeeperMapper
-import com.itsci.mju.maebanjumpen.mapper.HousekeeperSkillMapper
-import com.itsci.mju.maebanjumpen.mapper.SkillLevelTierMapper
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.HousekeeperRepository
 import com.itsci.mju.maebanjumpen.skilltype.repository.SkillLevelTierRepository
@@ -19,53 +17,68 @@ import java.util.Optional
 @Service
 @Transactional
 class HousekeeperSkillServiceImpl(
-    private val housekeeperMapper: HousekeeperMapper,
-    private val housekeeperSkillMapper: HousekeeperSkillMapper,
-    private val skillLevelTierMapper: SkillLevelTierMapper,
     private val housekeeperSkillRepository: HousekeeperSkillRepository,
     private val skillLevelTierRepository: SkillLevelTierRepository,
     private val housekeeperRepository: HousekeeperRepository,
     private val skillTypeRepository: SkillTypeRepository
 ) : HousekeeperSkillService {
 
+    private fun mapHousekeeperSkillToDto(hs: HousekeeperSkill): HousekeeperSkillDTO {
+        return HousekeeperSkillDTO(
+            id = hs.id,
+            housekeeperId = hs.housekeeper?.id?.toInt(),
+            skillTypeId = hs.skillType?.id?.toInt(),
+            skillLevelTierId = hs.skillLevelTier?.id?.toInt(),
+            pricePerDay = hs.pricePerDay,
+            totalHiresCompleted = hs.totalHiresCompleted
+        )
+    }
+
     @Transactional(readOnly = true)
     override fun getAllHousekeeperSkills(): List<HousekeeperDTO> {
         val housekeepers = housekeeperRepository.findAll()
-        return housekeeperMapper.toDtoList(housekeepers)
+        return housekeepers.map { hk ->
+            HousekeeperDTO().apply {
+                id = hk.id
+                balance = hk.balance
+                photoVerifyUrl = hk.photoVerifyUrl
+                statusVerify = hk.statusVerify
+                rating = hk.rating
+                dailyRate = hk.dailyRate
+            }
+        }
     }
 
     @Transactional(readOnly = true)
-    override fun getHousekeeperSkillById(id: Int): HousekeeperSkillDTO? {
+    override fun getHousekeeperSkillById(id: Long): HousekeeperSkillDTO? {
         val entity = housekeeperSkillRepository.findById(id).orElse(null)
-        return entity?.let { housekeeperSkillMapper.toDto(it) }
+        return entity?.let { mapHousekeeperSkillToDto(it) }
     }
 
     override fun saveHousekeeperSkill(housekeeperSkillDto: HousekeeperSkillDTO): HousekeeperSkillDTO {
-        val housekeeperId = housekeeperSkillDto.housekeeperId
+        val housekeeperId = housekeeperSkillDto.housekeeperId?.toLong()
+            ?: throw IllegalArgumentException("Housekeeper ID is required")
         val skillTypeId = housekeeperSkillDto.skillTypeId
+            ?: throw IllegalArgumentException("SkillType ID is required")
 
         val optionalExistingHs = housekeeperSkillRepository
-            .findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId!!, skillTypeId!!)
+            .findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId, skillTypeId)
 
         if (optionalExistingHs.isPresent) {
             val existingSkill = optionalExistingHs.get()
             housekeeperSkillDto.pricePerDay?.let { existingSkill.pricePerDay = it }
             val updatedSkill = housekeeperSkillRepository.save(existingSkill)
-            return housekeeperSkillMapper.toDto(updatedSkill)
+            return mapHousekeeperSkillToDto(updatedSkill)
         }
-
-        val entity = housekeeperSkillMapper.toEntity(housekeeperSkillDto)
 
         val housekeeper = housekeeperRepository.findById(housekeeperId)
             .orElseThrow { EntityNotFoundException("Housekeeper not found with ID: $housekeeperId") }
-        entity.housekeeper = housekeeper
 
-        val skillType = skillTypeRepository.findById(skillTypeId)
+        val skillType = skillTypeRepository.findById(skillTypeId.toLong())
             .orElseThrow { EntityNotFoundException("SkillType not found with ID: $skillTypeId") }
-        entity.skillType = skillType
 
         val skillLevelTier = if (housekeeperSkillDto.skillLevelTierId != null) {
-            skillLevelTierRepository.findById(housekeeperSkillDto.skillLevelTierId!!)
+            skillLevelTierRepository.findById(housekeeperSkillDto.skillLevelTierId!!.toLong())
                 .orElseThrow { EntityNotFoundException("SkillLevelTier not found with ID: ${housekeeperSkillDto.skillLevelTierId}") }
         } else {
             skillLevelTierRepository.findAll()
@@ -73,52 +86,57 @@ class HousekeeperSkillServiceImpl(
                 ?: throw RuntimeException("No SkillLevelTier found. Cannot set initial level.")
         }
 
-        entity.skillLevelTier = skillLevelTier
-        entity.totalHiresCompleted = 0
+        val entity = HousekeeperSkill(
+            housekeeper = housekeeper,
+            skillType = skillType,
+            skillLevelTier = skillLevelTier,
+            pricePerDay = housekeeperSkillDto.pricePerDay,
+            totalHiresCompleted = 0
+        )
 
         val savedEntity = housekeeperSkillRepository.save(entity)
-        return housekeeperSkillMapper.toDto(savedEntity)
+        return mapHousekeeperSkillToDto(savedEntity)
     }
 
-    override fun deleteHousekeeperSkill(id: Int) {
+    override fun deleteHousekeeperSkill(id: Long) {
         housekeeperSkillRepository.deleteById(id)
     }
 
     @Transactional(readOnly = true)
-    override fun getSkillsByHousekeeperId(housekeeperId: Int): Optional<HousekeeperSkillDTO> {
+    override fun getSkillsByHousekeeperId(housekeeperId: Long): Optional<HousekeeperSkillDTO> {
         val optionalHousekeeper = housekeeperRepository.findById(housekeeperId)
 
         if (optionalHousekeeper.isPresent && optionalHousekeeper.get().housekeeperSkills?.isNotEmpty() == true) {
             val firstSkill = optionalHousekeeper.get().housekeeperSkills!!.iterator().next()
-            return Optional.of(housekeeperSkillMapper.toDto(firstSkill))
+            return Optional.of(mapHousekeeperSkillToDto(firstSkill))
         }
 
         return Optional.empty()
     }
 
-    override fun updateHousekeeperSkill(id: Int, skillDto: HousekeeperSkillDTO): HousekeeperSkillDTO {
+    override fun updateHousekeeperSkill(id: Long, skillDto: HousekeeperSkillDTO): HousekeeperSkillDTO {
         return housekeeperSkillRepository.findById(id).map { existingSkill ->
             skillDto.pricePerDay?.let { existingSkill.pricePerDay = it }
             skillDto.totalHiresCompleted?.let { existingSkill.totalHiresCompleted = it }
 
             skillDto.skillLevelTierId?.let { tierId ->
-                val newTier = skillLevelTierRepository.findById(tierId)
+                val newTier = skillLevelTierRepository.findById(tierId.toLong())
                     .orElseThrow { EntityNotFoundException("SkillLevelTier not found with ID: $tierId") }
                 existingSkill.skillLevelTier = newTier
             }
 
             val updatedSkill = housekeeperSkillRepository.save(existingSkill)
-            housekeeperSkillMapper.toDto(updatedSkill)
+            mapHousekeeperSkillToDto(updatedSkill)
         }.orElseThrow { NoSuchElementException("HousekeeperSkill not found with ID: $id") }
     }
 
     @Transactional(readOnly = true)
-    override fun findByHousekeeperIdAndSkillTypeId(housekeeperId: Int, skillTypeId: Int): Optional<HousekeeperSkillDTO> {
+    override fun findByHousekeeperIdAndSkillTypeId(housekeeperId: Long, skillTypeId: Int): Optional<HousekeeperSkillDTO> {
         val optionalHs = housekeeperSkillRepository.findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId, skillTypeId)
-        return optionalHs.map { housekeeperSkillMapper.toDto(it) }
+        return optionalHs.map { mapHousekeeperSkillToDto(it) }
     }
 
-    override fun updateSkillLevelAndHiresCompleted(housekeeperId: Int, skillTypeId: Int) {
+    override fun updateSkillLevelAndHiresCompleted(housekeeperId: Long, skillTypeId: Int) {
         val optionalHs = housekeeperSkillRepository.findByHousekeeperIdAndSkillTypeSkillTypeId(housekeeperId, skillTypeId)
 
         if (optionalHs.isPresent) {
@@ -131,7 +149,7 @@ class HousekeeperSkillServiceImpl(
         }
     }
 
-    private fun recalculateSkillLevel(hs: com.itsci.mju.maebanjumpen.entity.HousekeeperSkill) {
+    private fun recalculateSkillLevel(hs: HousekeeperSkill) {
         val tiers = skillLevelTierRepository.findAll()
             .sortedByDescending { it.minHiresForLevel ?: 0 }
 

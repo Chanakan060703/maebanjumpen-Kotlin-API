@@ -16,7 +16,7 @@ class HirerController(private val hirerService: HirerService) {
     }
 
     @GetMapping("/{id}")
-    fun getHirerById(@PathVariable id: Int): ResponseEntity<HirerDTO> {
+    fun getHirerById(@PathVariable id: Long): ResponseEntity<HirerDTO> {
         val hirer = hirerService.getHirerById(id)
         return ResponseEntity.ok(hirer)
     }
@@ -28,13 +28,13 @@ class HirerController(private val hirerService: HirerService) {
     }
 
     @PutMapping("/{id}")
-    fun updateHirer(@PathVariable id: Int, @RequestBody hirer: HirerDTO): ResponseEntity<HirerDTO> {
+    fun updateHirer(@PathVariable id: Long, @RequestBody hirer: HirerDTO): ResponseEntity<HirerDTO> {
         val updatedHirer = hirerService.updateHirer(id, hirer)
         return ResponseEntity.ok(updatedHirer)
     }
 
     @DeleteMapping("/{id}")
-    fun deleteHirer(@PathVariable id: Int): ResponseEntity<Void> {
+    fun deleteHirer(@PathVariable id: Long): ResponseEntity<Void> {
         hirerService.deleteHirer(id)
         return ResponseEntity.noContent().build()
     }
