@@ -7,6 +7,7 @@ import com.itsci.mju.maebanjumpen.entity.Transaction
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.MemberRepository
 import com.itsci.mju.maebanjumpen.transaction.constant.TransactionStatusEnum
+import com.itsci.mju.maebanjumpen.transaction.constant.TransactionTypeEnum
 import com.itsci.mju.maebanjumpen.transaction.dto.TransactionDTO
 import com.itsci.mju.maebanjumpen.transaction.repository.TransactionRepository
 import com.itsci.mju.maebanjumpen.transaction.service.TransactionService
@@ -49,7 +50,7 @@ class TransactionServiceImpl @Autowired internal constructor(
     private fun mapDtoToTransaction(dto: TransactionDTO): Transaction {
         return Transaction(
             id = dto.transactionId,
-            transactionType = dto.transactionType ?: "",
+            transactionType = dto.transactionType ?: throw IllegalArgumentException("Transaction type is required."),
             transactionAmount = dto.transactionAmount ?: 0.0,
             transactionDate = dto.transactionDate,
             transactionStatus = dto.transactionStatus?.value ?: "",
@@ -103,7 +104,7 @@ class TransactionServiceImpl @Autowired internal constructor(
             transaction.transactionDate = LocalDateTime.now()
         }
 
-        if ("Withdrawal".equals(transaction.transactionType, ignoreCase = true)) {
+        if (transaction.transactionType == TransactionTypeEnum.WITHDRAWAL) {
             val hasPrompay = !transaction.prompayNumber.isNullOrBlank()
             val hasBankDetails = !transaction.bankAccountNumber.isNullOrBlank() && !transaction.bankAccountName.isNullOrBlank()
 
@@ -118,11 +119,7 @@ class TransactionServiceImpl @Autowired internal constructor(
         }
 
         if (transaction.transactionStatus.isEmpty()) {
-            transaction.transactionStatus = when {
-                "Deposit".equals(transaction.transactionType, ignoreCase = true) -> TransactionStatusEnum.PENDING.value
-                "Withdrawal".equals(transaction.transactionType, ignoreCase = true) -> TransactionStatusEnum.PENDING.value
-                else -> TransactionStatusEnum.PENDING.value
-            }
+            transaction.transactionStatus = TransactionStatusEnum.PENDING.value
         }
 
         val currentTransactionStatus = TransactionStatusEnum.fromValue(transaction.transactionStatus)
@@ -146,7 +143,7 @@ class TransactionServiceImpl @Autowired internal constructor(
                 val currentBalance = memberToUpdate.balance ?: 0.0
                 val transactionAmount = savedTransaction.transactionAmount
 
-                if ("Withdrawal".equals(savedTransaction.transactionType, ignoreCase = true)) {
+                if (savedTransaction.transactionType == TransactionTypeEnum.WITHDRAWAL) {
                     if (currentBalance >= transactionAmount) {
                         memberToUpdate.balance = currentBalance - transactionAmount
                         memberRepository.save(memberToUpdate)
@@ -156,7 +153,7 @@ class TransactionServiceImpl @Autowired internal constructor(
                         transactionRepository.save(savedTransaction)
                         throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds for withdrawal ($currentBalance < $transactionAmount)")
                     }
-                } else if ("Deposit".equals(savedTransaction.transactionType, ignoreCase = true)) {
+                } else if (savedTransaction.transactionType == TransactionTypeEnum.DEPOSIT) {
                     memberToUpdate.balance = currentBalance + transactionAmount
                     memberRepository.save(memberToUpdate)
                 }
@@ -190,7 +187,7 @@ class TransactionServiceImpl @Autowired internal constructor(
 
     @Transactional(readOnly = true)
     override fun getWithdrawalRequests(): List<TransactionDTO> {
-        val withdrawalTransactions = transactionRepository.findByTransactionTypeOrTransactionType("Withdrawal", "ถอนเงิน")
+        val withdrawalTransactions = transactionRepository.findByTransactionType(TransactionTypeEnum.WITHDRAWAL)
         withdrawalTransactions.forEach { initializeTransactionMemberAndRelated(it) }
 
         val sortedTransactions = withdrawalTransactions.sortedWith(compareBy<Transaction> { transaction ->
@@ -227,7 +224,7 @@ class TransactionServiceImpl @Autowired internal constructor(
                     val currentBalance = memberToUpdate.balance ?: 0.0
                     val transactionAmount = savedTransaction.transactionAmount
 
-                    if ("Withdrawal".equals(savedTransaction.transactionType, ignoreCase = true)) {
+                    if (savedTransaction.transactionType == TransactionTypeEnum.WITHDRAWAL) {
                         if (currentBalance >= transactionAmount) {
                             memberToUpdate.balance = currentBalance - transactionAmount
                             memberRepository.save(memberToUpdate)
@@ -237,7 +234,7 @@ class TransactionServiceImpl @Autowired internal constructor(
                             transactionRepository.save(savedTransaction)
                             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient funds for withdrawal ($currentBalance < $transactionAmount)")
                         }
-                    } else if ("Deposit".equals(savedTransaction.transactionType, ignoreCase = true)) {
+                    } else if (savedTransaction.transactionType == TransactionTypeEnum.DEPOSIT) {
                         memberToUpdate.balance = currentBalance + transactionAmount
                         memberRepository.save(memberToUpdate)
                     }

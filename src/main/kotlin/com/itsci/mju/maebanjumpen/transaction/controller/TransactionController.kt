@@ -7,6 +7,7 @@ import com.itsci.mju.maebanjumpen.common.response.HttpResponse
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.service.MemberService
 import com.itsci.mju.maebanjumpen.transaction.constant.TransactionStatusEnum
+import com.itsci.mju.maebanjumpen.transaction.constant.TransactionTypeEnum
 import com.itsci.mju.maebanjumpen.transaction.dto.QrCodeRequestDTO
 import com.itsci.mju.maebanjumpen.transaction.dto.TransactionDTO
 import com.itsci.mju.maebanjumpen.transaction.service.OmiseService
@@ -323,7 +324,7 @@ class TransactionController @Autowired internal constructor(
             // 1. สร้าง Transaction สำหรับการฝากเงิน (DEPOSIT)
             depositTransactionDto = TransactionDTO().apply {
                 member = MemberDTO().apply { this.id = memberId }
-                transactionType = "DEPOSIT"
+                transactionType = TransactionTypeEnum.DEPOSIT
                 transactionAmount = amount
                 transactionStatus = TransactionStatusEnum.PENDING
             }

@@ -1,6 +1,8 @@
 package com.itsci.mju.maebanjumpen.entity
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.itsci.mju.maebanjumpen.transaction.constant.TransactionTypeEnum
+import com.itsci.mju.maebanjumpen.transaction.converter.TransactionTypeConverter
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -12,8 +14,9 @@ data class Transaction(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @Column(name = "type", nullable = false, length = 255)
-    var transactionType: String = "",
+    @Convert(converter = TransactionTypeConverter::class)
+    @Column(name = "type", nullable = false)
+    var transactionType: TransactionTypeEnum = TransactionTypeEnum.DEPOSIT,
 
     @Column(name = "amount", nullable = false)
     var transactionAmount: Double = 0.0,
@@ -57,6 +60,6 @@ data class Transaction(
 
     override fun hashCode(): Int = id?.hashCode() ?: 0
 
-    override fun toString(): String = "Transaction(transactionId=$id, transactionType='$transactionType', transactionAmount=$transactionAmount)"
+    override fun toString(): String = "Transaction(transactionId=$id, transactionType=$transactionType, transactionAmount=$transactionAmount)"
 }
 

@@ -309,7 +309,7 @@ databaseChangeLog:
                   type: numeric
               - column:
                   name: type
-                  type: varchar
+                  type: numeric
               - column:
                   name: amount
                   type: numeric
@@ -334,45 +334,6 @@ databaseChangeLog:
               - column:
                   name: transaction_approval_date
                   type: DATETIME
-              - column:
-                  name: create_at
-                  type: DATETIME
-              - column:
-                  name: update_at
-                  type: DATETIME
-              - column:
-                  name: is_delete
-                  type: boolean
-
-  - changeSet:
-      id: load-penalty-data
-      author: chanakan.beem
-      changes:
-        - loadData:
-            file: db/changelog/changes/data/penalty.csv
-            tableName: penalty
-            separator: ","
-            quotchar: '"'
-            encoding: UTF-8
-            columns:
-              - column:
-                  name: id
-                  type: numeric
-              - column:
-                  name: penalty_type
-                  type: varchar
-              - column:
-                  name: penalty_detail
-                  type: varchar
-              - column:
-                  name: penalty_date
-                  type: DATETIME
-              - column:
-                  name: penalty_status
-                  type: varchar
-              - column:
-                  name: report_id
-                  type: numeric
               - column:
                   name: create_at
                   type: DATETIME
@@ -414,6 +375,45 @@ databaseChangeLog:
                   type: numeric
               - column:
                   name: hire_id
+                  type: numeric
+              - column:
+                  name: create_at
+                  type: DATETIME
+              - column:
+                  name: update_at
+                  type: DATETIME
+              - column:
+                  name: is_delete
+                  type: boolean
+
+  - changeSet:
+      id: load-penalty-data
+      author: chanakan.beem
+      changes:
+        - loadData:
+            file: db/changelog/changes/data/penalty.csv
+            tableName: penalty
+            separator: ","
+            quotchar: '"'
+            encoding: UTF-8
+            columns:
+              - column:
+                  name: id
+                  type: numeric
+              - column:
+                  name: penalty_type
+                  type: varchar
+              - column:
+                  name: penalty_detail
+                  type: varchar
+              - column:
+                  name: penalty_date
+                  type: DATETIME
+              - column:
+                  name: penalty_status
+                  type: varchar
+              - column:
+                  name: report_id
                   type: numeric
               - column:
                   name: create_at
