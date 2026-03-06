@@ -1,6 +1,6 @@
 package com.itsci.mju.maebanjumpen.partyrole.dto
 
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperSkillDTO
 
 open class HousekeeperDTO : MemberDTO() {
     var photoVerifyUrl: String? = null

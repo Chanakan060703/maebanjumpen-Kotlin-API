@@ -1,5 +1,6 @@
 package com.itsci.mju.maebanjumpen.skilltype.service.impl
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
 import com.itsci.mju.maebanjumpen.skilltype.dto.SkillTypeDTO
 import com.itsci.mju.maebanjumpen.skilltype.repository.SkillTypeRepository
 import com.itsci.mju.maebanjumpen.skilltype.request.CreateSkillTypeRequest
@@ -70,7 +71,13 @@ class SkillTypeServiceImpl @Autowired internal constructor(
   override fun deleteSkillType(id: Long) : Boolean{
     val skillType = skillTypeRepository.findById(id)
       .orElseThrow { NotFoundException("SkillType not found with id: $id") }
-    skillTypeRepository.delete(skillType)
+
+    if(skillType.isDelete == true){
+      throw BadRequestException("SkillType already deleted")
+    }
+
+    skillType.isDelete = true
+    skillTypeRepository.save(skillType)
 
     return true
   }

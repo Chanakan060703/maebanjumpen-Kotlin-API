@@ -20,7 +20,7 @@ interface PersonService {
     sortField: String?,
   ): Page<AdminListDto>
 
-  fun deleteAdmin(id: Int)
+  fun deleteAdmin(id: Int): Boolean
   fun updateUserMe(id: Int, updateUserDto: UpdateMeDto)
   fun updatePassword(id: Int, updatePasswordDto: UpdatePasswordDto)
   fun editAdmin(id: Int, editAdminDto: EditAdminDto)

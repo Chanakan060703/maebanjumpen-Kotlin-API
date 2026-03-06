@@ -4,10 +4,11 @@ import com.itsci.mju.maebanjumpen.entity.AccountManager
 import com.itsci.mju.maebanjumpen.partyrole.dto.AccountManagerDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.AccountManagerRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.AccountManagerService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class AccountManagerServiceImpl(
+class AccountManagerServiceImpl @Autowired internal constructor(
     private val accountManagerRepository: AccountManagerRepository
 ) : AccountManagerService {
 

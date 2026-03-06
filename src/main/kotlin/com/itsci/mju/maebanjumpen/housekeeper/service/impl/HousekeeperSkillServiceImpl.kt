@@ -1,22 +1,23 @@
-package com.itsci.mju.maebanjumpen.housekeeperskill.service.impl
+package com.itsci.mju.maebanjumpen.housekeeper.service.impl
 
 import com.itsci.mju.maebanjumpen.entity.HousekeeperSkill
 import com.itsci.mju.maebanjumpen.entity.SkillLevelTier
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
-import com.itsci.mju.maebanjumpen.housekeeperskill.repository.HousekeeperSkillRepository
-import com.itsci.mju.maebanjumpen.housekeeperskill.service.HousekeeperSkillService
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperSkillDTO
+import com.itsci.mju.maebanjumpen.housekeeper.repository.HousekeeperSkillRepository
+import com.itsci.mju.maebanjumpen.housekeeper.service.HousekeeperSkillService
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.HousekeeperRepository
 import com.itsci.mju.maebanjumpen.skilltype.repository.SkillLevelTierRepository
 import com.itsci.mju.maebanjumpen.skilltype.repository.SkillTypeRepository
 import jakarta.persistence.EntityNotFoundException
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.Optional
 
 @Service
 @Transactional
-class HousekeeperSkillServiceImpl(
+class HousekeeperSkillServiceImpl @Autowired internal constructor(
     private val housekeeperSkillRepository: HousekeeperSkillRepository,
     private val skillLevelTierRepository: SkillLevelTierRepository,
     private val housekeeperRepository: HousekeeperRepository,
@@ -99,7 +100,15 @@ class HousekeeperSkillServiceImpl(
     }
 
     override fun deleteHousekeeperSkill(id: Long) {
-        housekeeperSkillRepository.deleteById(id)
+        val housekeeperSkill = housekeeperSkillRepository.findById(id)
+            .orElseThrow { EntityNotFoundException("HousekeeperSkill not found with id: $id") }
+
+        if (housekeeperSkill.isDelete == true) {
+            throw IllegalStateException("HousekeeperSkill already deleted")
+        }
+
+        housekeeperSkill.isDelete = true
+        housekeeperSkillRepository.save(housekeeperSkill)
     }
 
     @Transactional(readOnly = true)

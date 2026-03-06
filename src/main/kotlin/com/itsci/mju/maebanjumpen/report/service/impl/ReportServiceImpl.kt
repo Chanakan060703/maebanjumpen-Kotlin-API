@@ -1,5 +1,6 @@
 package com.itsci.mju.maebanjumpen.report.service.impl
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
 import com.itsci.mju.maebanjumpen.entity.*
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
 import com.itsci.mju.maebanjumpen.hire.repository.HireRepository
@@ -114,9 +115,14 @@ class ReportServiceImpl @Autowired internal constructor(
 
   @Transactional
   override fun deleteReport(id: Long): Boolean {
-    reportRepository.findById(id)
+    val report = reportRepository.findById(id)
         .orElseThrow { IllegalArgumentException("Report not found with id: $id") }
-    reportRepository.deleteById(id)
+
+    if (report.isDelete == true) {
+      throw BadRequestException("รายงานนี้ถูกลบไปแล้ว")
+    }
+    report.isDelete = true
+    reportRepository.save(report)
     return true
   }
 

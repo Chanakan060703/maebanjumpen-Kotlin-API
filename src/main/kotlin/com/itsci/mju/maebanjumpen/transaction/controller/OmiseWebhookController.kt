@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.itsci.mju.maebanjumpen.transaction.service.TransactionService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/webhook/omise")
-class OmiseWebhookController(
+class OmiseWebhookController @Autowired internal constructor(
     private val objectMapper: ObjectMapper,
     private val transactionService: TransactionService
 ) {

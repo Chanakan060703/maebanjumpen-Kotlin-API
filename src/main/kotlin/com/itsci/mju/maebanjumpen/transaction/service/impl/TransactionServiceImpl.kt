@@ -1,6 +1,8 @@
 package com.itsci.mju.maebanjumpen.transaction.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import com.itsci.mju.maebanjumpen.entity.Transaction
 import com.itsci.mju.maebanjumpen.partyrole.dto.MemberDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.MemberRepository
@@ -13,10 +15,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
+import org.springframework.beans.factory.annotation.Autowired
 import java.util.Optional
 
 @Service
-class TransactionServiceImpl(
+class TransactionServiceImpl @Autowired internal constructor(
     private val transactionRepository: TransactionRepository,
     private val memberRepository: MemberRepository
 ) : TransactionService {
@@ -163,11 +166,17 @@ class TransactionServiceImpl(
     }
 
     @Transactional
-    override fun deleteTransaction(id: Long) {
-        if (!transactionRepository.existsById(id)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with ID: $id")
+    override fun deleteTransaction(id: Long): Boolean {
+        val transaction = transactionRepository.findById(id)
+            .orElseThrow { NotFoundException("Transaction not found with id: $id") }
+
+        if (transaction.isDelete == true) {
+            throw BadRequestException("ธุรกรรมนี้ถูกลบแล้ว")
         }
-        transactionRepository.deleteById(id)
+
+        transaction.isDelete = true
+        transactionRepository.save(transaction)
+        return true
     }
 
     @Transactional(readOnly = true)

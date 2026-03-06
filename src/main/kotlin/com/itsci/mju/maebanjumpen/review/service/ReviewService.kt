@@ -10,7 +10,7 @@ interface ReviewService {
 
     fun createReview(request: CreateReviewRequest): ReviewDTO
 
-    fun deleteReview(id: Long)
+    fun deleteReview(id: Long): Boolean
 
     fun getReviewByHireId(hireId: Long): ReviewDTO?
 

@@ -1,5 +1,6 @@
 package com.itsci.mju.maebanjumpen.review.service.impl
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
 import com.itsci.mju.maebanjumpen.entity.Review
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
 import com.itsci.mju.maebanjumpen.hire.repository.HireRepository
@@ -72,10 +73,18 @@ class ReviewServiceImpl @Autowired internal constructor(
   }
 
   @Transactional
-  override fun deleteReview(id: Long) {
+  override fun deleteReview(id: Long): Boolean {
     val review = reviewRepository.findById(id)
       .orElseThrow { NotFoundException("Review not found with id: $id") }
-    reviewRepository.delete(review)
+
+    if (review.isDelete == true) {
+      throw BadRequestException("Review ถูกลบไปแล้ว")
+    }
+
+    review.isDelete = true
+    reviewRepository.save(review)
+
+    return true
   }
 
   override fun getReviewByHireId(hireId: Long): ReviewDTO? {

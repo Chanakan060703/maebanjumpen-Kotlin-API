@@ -1,6 +1,6 @@
 package com.itsci.mju.maebanjumpen.partyrole.service
 
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperDetailDTO
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperDetailDTO
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 
 interface HousekeeperService {

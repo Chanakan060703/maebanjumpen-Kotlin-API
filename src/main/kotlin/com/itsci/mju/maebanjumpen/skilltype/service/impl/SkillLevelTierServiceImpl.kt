@@ -1,5 +1,6 @@
 package com.itsci.mju.maebanjumpen.skilltype.service.impl
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
 import com.itsci.mju.maebanjumpen.skilltype.dto.SkillLevelTierDTO
 import com.itsci.mju.maebanjumpen.skilltype.repository.SkillLevelTierRepository
 import com.itsci.mju.maebanjumpen.skilltype.request.CreateSkillTierRequest
@@ -66,7 +67,13 @@ class SkillLevelTierServiceImpl @Autowired internal constructor(
   override fun deleteSkillLevelTier(id: Long): Boolean {
     val skillLevelTier = skillLevelTierRepository.findById(id)
       .orElseThrow { NotFoundException("SkillLevelTier not found with id: $id") }
-    skillLevelTierRepository.delete(skillLevelTier)
+
+    if (skillLevelTier.isDelete == true) {
+      throw BadRequestException("SkillLevelTier already deleted")
+    }
+
+    skillLevelTier.isDelete = true
+    skillLevelTierRepository.save(skillLevelTier)
 
     return true
   }

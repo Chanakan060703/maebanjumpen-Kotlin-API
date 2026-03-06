@@ -17,11 +17,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/maeban/auth")
-class AuthController(
+class AuthController @Autowired internal constructor(
     private val authService: AuthService,
     private val jwtTokenProvider: JWTTokenProvider,
     private val tokenService: TokenService

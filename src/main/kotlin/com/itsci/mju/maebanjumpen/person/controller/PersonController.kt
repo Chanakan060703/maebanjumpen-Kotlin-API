@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 /**
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("/maeban/user")
-class PersonController(
+class PersonController @Autowired internal constructor(
     private val authenticationManager: AuthenticationManager,
     private val jwtTokenProvider: JWTTokenProvider,
     private val tokenService: TokenService,

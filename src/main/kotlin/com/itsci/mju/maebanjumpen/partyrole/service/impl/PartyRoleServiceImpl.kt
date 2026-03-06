@@ -5,11 +5,12 @@ import com.itsci.mju.maebanjumpen.partyrole.dto.*
 import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.PartyRoleService
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class PartyRoleServiceImpl(
+class PartyRoleServiceImpl @Autowired internal constructor(
     private val partyRoleRepository: PartyRoleRepository,
     private val personRepository: PersonRepository
 ) : PartyRoleService {

@@ -2,18 +2,19 @@ package com.itsci.mju.maebanjumpen.partyrole.service.impl
 
 import com.itsci.mju.maebanjumpen.entity.Housekeeper
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperDetailDTO
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperDetailDTO
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperSkillDTO
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.HousekeeperRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.HousekeeperService
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class HousekeeperServiceImpl(
+class HousekeeperServiceImpl @Autowired internal constructor(
     private val housekeeperRepository: HousekeeperRepository,
     private val personRepository: PersonRepository
 ) : HousekeeperService {
@@ -29,16 +30,16 @@ class HousekeeperServiceImpl(
             statusVerify = housekeeper.statusVerify
             rating = housekeeper.rating
             dailyRate = housekeeper.dailyRate
-            housekeeperSkills = housekeeper.housekeeperSkills?.map { hs ->
-                HousekeeperSkillDTO(
-                    id = hs.id,
-                    housekeeperId = hs.housekeeper?.id?.toInt(),
-                    skillTypeId = hs.skillType?.id?.toInt(),
-                    skillLevelTierId = hs.skillLevelTier?.id?.toInt(),
-                    pricePerDay = hs.pricePerDay,
-                    totalHiresCompleted = hs.totalHiresCompleted
-                )
-            }?.toSet()
+            housekeeperSkills = housekeeper.housekeeperSkills.map { hs ->
+              HousekeeperSkillDTO(
+                id = hs.id,
+                housekeeperId = hs.housekeeper?.id?.toInt(),
+                skillTypeId = hs.skillType?.id?.toInt(),
+                skillLevelTierId = hs.skillLevelTier?.id?.toInt(),
+                pricePerDay = hs.pricePerDay,
+                totalHiresCompleted = hs.totalHiresCompleted
+              )
+            }.toSet()
         }
     }
 
@@ -90,7 +91,6 @@ class HousekeeperServiceImpl(
         }
     }
 
-    @Transactional(readOnly = true)
     override fun getAllHousekeepers(): List<HousekeeperDTO> {
         val entities = housekeeperRepository.findAllWithPersonAndSkills()
         return entities
@@ -98,7 +98,6 @@ class HousekeeperServiceImpl(
             .mapNotNull { it?.let { hk -> mapHousekeeperToDto(hk) } }
     }
 
-    @Transactional(readOnly = true)
     override fun getHousekeeperDetailById(id: Long): HousekeeperDetailDTO? {
         val housekeeperOptional = housekeeperRepository.findByIdWithAllDetails(id)
         if (housekeeperOptional.isEmpty) return null
@@ -119,7 +118,6 @@ class HousekeeperServiceImpl(
         return detailDto
     }
 
-    @Transactional
     override fun saveHousekeeper(housekeeperDto: HousekeeperDTO): HousekeeperDTO {
         val housekeeper = Housekeeper().apply {
             balance = housekeeperDto.balance
@@ -139,7 +137,6 @@ class HousekeeperServiceImpl(
         return mapHousekeeperToDto(transformedHousekeeper!!)
     }
 
-    @Transactional
     override fun updateHousekeeper(id: Long, housekeeperDto: HousekeeperDTO): HousekeeperDTO {
         val existingHousekeeper = housekeeperRepository.findById(id)
             .orElseThrow { RuntimeException("Housekeeper with ID $id not found.") }

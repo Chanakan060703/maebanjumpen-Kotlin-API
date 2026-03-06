@@ -1,5 +1,7 @@
 package com.itsci.mju.maebanjumpen.penalty.service.impl
 
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
 import com.itsci.mju.maebanjumpen.entity.Penalty
 import com.itsci.mju.maebanjumpen.partyrole.repository.PartyRoleRepository
 import com.itsci.mju.maebanjumpen.penalty.dto.PenaltyDTO
@@ -7,12 +9,13 @@ import com.itsci.mju.maebanjumpen.penalty.repository.PenaltyRepository
 import com.itsci.mju.maebanjumpen.penalty.service.PenaltyService
 import com.itsci.mju.maebanjumpen.person.repository.PersonRepository
 import com.itsci.mju.maebanjumpen.report.repository.ReportRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
-class PenaltyServiceImpl(
+class PenaltyServiceImpl @Autowired internal constructor(
     private val penaltyRepository: PenaltyRepository,
     private val reportRepository: ReportRepository,
     private val personRepository: PersonRepository,
@@ -100,21 +103,23 @@ class PenaltyServiceImpl(
 
     @Transactional
     override fun deletePenalty(id: Long) {
-        val optionalPenalty = penaltyRepository.findById(id)
+        val penalty = penaltyRepository.findById(id)
+            .orElseThrow { NotFoundException("Penalty not found with id: $id") }
 
-        if (optionalPenalty.isPresent) {
-            val penaltyToDelete = optionalPenalty.get()
-
-            penaltyToDelete.report?.id?.let { reportId ->
-                reportRepository.findById(reportId).ifPresent { report ->
-                    report.penalties.remove(penaltyToDelete)
-                    report.reportStatus = "RESOLVED"
-                    reportRepository.save(report)
-                    println("Penalty ID $id was unlinked from Report ID ${report.id}")
-                }
-            }
-            penaltyRepository.delete(penaltyToDelete)
+        if (penalty.isDelete == true) {
+            throw BadRequestException("โทษนี้ถูกลบไปแล้ว")
         }
+
+        penalty.report?.id?.let { reportId ->
+            reportRepository.findById(reportId).ifPresent { report ->
+                report.penalties.remove(penalty)
+                report.reportStatus = "RESOLVED"
+                reportRepository.save(report)
+            }
+        }
+
+        penalty.isDelete = true
+        penaltyRepository.save(penalty)
     }
 
     @Transactional

@@ -4,10 +4,11 @@ import com.itsci.mju.maebanjumpen.entity.Admin
 import com.itsci.mju.maebanjumpen.partyrole.dto.AdminDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.AdminRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.AdminService
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class AdminServiceImpl(
+class AdminServiceImpl @Autowired internal constructor(
     private val adminRepository: AdminRepository
 ) : AdminService {
 

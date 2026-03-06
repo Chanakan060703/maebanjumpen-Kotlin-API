@@ -18,6 +18,8 @@ class ReportController @Autowired internal constructor(
   private val reportService: ReportService
 ) {
 
+    private val logger = org.slf4j.LoggerFactory.getLogger(this::class.java)
+
     @GetMapping
     fun listAllReports(
 
@@ -31,6 +33,7 @@ class ReportController @Autowired internal constructor(
               )
             )
         } catch (e: BadRequestException){
+            logger.error(e.message)
             ResponseEntity.badRequest().body(
               HttpResponse(
                 false,
@@ -38,6 +41,7 @@ class ReportController @Autowired internal constructor(
               )
             )
         } catch (e: NotFoundException) {
+            logger.error(e.message)
             ResponseEntity.badRequest().body(
               HttpResponse(
                 false,
@@ -45,6 +49,7 @@ class ReportController @Autowired internal constructor(
               )
             )
         } catch (e: Exception) {
+            logger.error(e.message)
             ResponseEntity.badRequest().body(
               HttpResponse(
                 false,
@@ -138,6 +143,7 @@ class ReportController @Autowired internal constructor(
               )
             )
         } catch (e: BadRequestException) {
+            logger.error(e.message)
             ResponseEntity.badRequest().body(
               HttpResponse(
                 false,
@@ -145,6 +151,7 @@ class ReportController @Autowired internal constructor(
               )
             )
         } catch (e: Exception) {
+            logger.error(e.message)
             ResponseEntity.badRequest().body(
               HttpResponse(
                 false,
@@ -169,6 +176,7 @@ class ReportController @Autowired internal constructor(
         )
       )
     } catch (e: NotFoundException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -176,6 +184,7 @@ class ReportController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -184,6 +193,7 @@ class ReportController @Autowired internal constructor(
       )
     }
   }
+
   @DeleteMapping("/{id}")
   fun deleteReport(
     @PathVariable id: Long
@@ -197,6 +207,7 @@ class ReportController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -205,6 +216,7 @@ class ReportController @Autowired internal constructor(
       )
     }
   }
+
   @PutMapping("/ban/{personId}")
   fun updateUserAccountStatus(
     @PathVariable personId: Long,
@@ -219,6 +231,7 @@ class ReportController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -227,7 +240,5 @@ class ReportController @Autowired internal constructor(
       )
     }
   }
-
-
 }
 

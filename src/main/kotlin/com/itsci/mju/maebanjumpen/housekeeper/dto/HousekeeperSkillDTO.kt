@@ -1,4 +1,4 @@
-package com.itsci.mju.maebanjumpen.housekeeperskill.dto
+package com.itsci.mju.maebanjumpen.housekeeper.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.itsci.mju.maebanjumpen.skilltype.dto.SkillLevelTierDTO

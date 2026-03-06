@@ -12,11 +12,12 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
-class PersonServiceImpl(
+class PersonServiceImpl @Autowired internal constructor(
     private val bCryptPasswordEncoder: BCryptPasswordEncoder,
     private val personRepository: PersonRepository,
     private val adminRepository: AdminRepository
@@ -92,8 +93,12 @@ class PersonServiceImpl(
         return PageImpl(adminDtos, pageable, adminDtos.size.toLong())
     }
 
-    override fun deleteAdmin(id: Int) {
-        personRepository.deleteById(id.toLong())
+    override fun deleteAdmin(id: Int): Boolean {
+        val admin = adminRepository.findById(id)
+            .orElseThrow { NotFoundException("Admin not found with id: $id") }
+        adminRepository.delete(admin)
+
+        return true
     }
 
     override fun updateUserMe(id: Int, updateUserDto: UpdateMeDto) {

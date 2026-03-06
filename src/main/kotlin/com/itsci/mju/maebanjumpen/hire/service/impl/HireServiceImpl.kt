@@ -7,20 +7,20 @@ import com.itsci.mju.maebanjumpen.hire.repository.HireRepository
 import com.itsci.mju.maebanjumpen.hire.request.CreateHireRequest
 import com.itsci.mju.maebanjumpen.hire.request.UpdateHireRequest
 import com.itsci.mju.maebanjumpen.hire.service.HireService
-import com.itsci.mju.maebanjumpen.housekeeperskill.service.HousekeeperSkillService
+import com.itsci.mju.maebanjumpen.housekeeper.service.HousekeeperSkillService
 import com.itsci.mju.maebanjumpen.partyrole.repository.HirerRepository
 import com.itsci.mju.maebanjumpen.partyrole.repository.HousekeeperRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.HirerService
 import com.itsci.mju.maebanjumpen.partyrole.service.HousekeeperService
 import com.itsci.mju.maebanjumpen.skilltype.repository.SkillTypeRepository
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalTime
 
 @Service
-class HireServiceImpl(
+class HireServiceImpl @Autowired internal constructor(
     private val hireRepository: HireRepository,
     private val hirerService: HirerService,
     private val housekeeperService: HousekeeperService,

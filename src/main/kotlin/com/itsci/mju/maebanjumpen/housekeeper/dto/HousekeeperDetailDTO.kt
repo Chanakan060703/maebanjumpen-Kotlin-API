@@ -1,8 +1,6 @@
-package com.itsci.mju.maebanjumpen.housekeeperskill.dto
+package com.itsci.mju.maebanjumpen.housekeeper.dto
 
 import com.itsci.mju.maebanjumpen.hire.dto.HireDTO
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
-import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import com.itsci.mju.maebanjumpen.review.dto.ReviewDTO
 
 data class HousekeeperDetailDTO(

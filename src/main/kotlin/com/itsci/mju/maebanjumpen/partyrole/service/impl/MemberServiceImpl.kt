@@ -8,10 +8,11 @@ import com.itsci.mju.maebanjumpen.partyrole.service.MemberService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.beans.factory.annotation.Autowired
 import java.util.Optional
 
 @Service
-class MemberServiceImpl(
+class MemberServiceImpl @Autowired internal constructor(
     private val memberRepository: MemberRepository
 ) : MemberService {
 

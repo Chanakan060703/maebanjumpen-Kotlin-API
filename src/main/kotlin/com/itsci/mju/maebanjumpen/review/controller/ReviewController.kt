@@ -19,6 +19,8 @@ class ReviewController @Autowired internal constructor(
   private val reviewService: ReviewService
 ) {
 
+  private val logger = org.slf4j.LoggerFactory.getLogger(this::class.java)
+
   @GetMapping
   fun listAllReviews(
 
@@ -32,6 +34,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch(e: BadRequestException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -39,6 +42,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: NotFoundException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -47,6 +51,7 @@ class ReviewController @Autowired internal constructor(
       )
     }
     catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -69,6 +74,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: NotFoundException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -76,6 +82,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -98,6 +105,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: BadRequestException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -105,6 +113,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -127,6 +136,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: NotFoundException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -134,6 +144,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -158,6 +169,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: NotFoundException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -165,6 +177,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -187,6 +200,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: NotFoundException) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -194,6 +208,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -216,6 +231,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -238,6 +254,7 @@ class ReviewController @Autowired internal constructor(
         )
       )
     } catch (e: Exception) {
+      logger.error(e.message)
       ResponseEntity.badRequest().body(
         HttpResponse(
           false,
@@ -246,7 +263,5 @@ class ReviewController @Autowired internal constructor(
       )
     }
   }
-
-
 }
 

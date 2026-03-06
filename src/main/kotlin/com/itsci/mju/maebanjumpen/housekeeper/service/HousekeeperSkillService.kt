@@ -1,6 +1,6 @@
-package com.itsci.mju.maebanjumpen.housekeeperskill.service
+package com.itsci.mju.maebanjumpen.housekeeper.service
 
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperSkillDTO
 import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
 import java.util.Optional
 

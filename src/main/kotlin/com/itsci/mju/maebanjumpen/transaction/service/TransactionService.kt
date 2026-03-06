@@ -8,7 +8,7 @@ interface TransactionService {
     fun getAllTransactions(): List<TransactionDTO>
     fun getTransactionById(id: Long): Optional<TransactionDTO>
     fun saveTransaction(transactionDto: TransactionDTO): TransactionDTO
-    fun deleteTransaction(id: Long)
+    fun deleteTransaction(id: Long): Boolean
     fun getTransactionsByMemberId(memberId: Long): List<TransactionDTO>
     fun getWithdrawalRequests(): List<TransactionDTO>
     fun updateWithdrawalRequestStatus(transactionId: Long, newStatus: String): Optional<TransactionDTO>

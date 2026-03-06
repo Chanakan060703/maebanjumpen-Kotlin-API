@@ -1,66 +1,172 @@
-package com.itsci.mju.maebanjumpen.housekeeperskill.controller
+package com.itsci.mju.maebanjumpen.housekeeper.controller
 
-import com.itsci.mju.maebanjumpen.housekeeperskill.dto.HousekeeperSkillDTO
-import com.itsci.mju.maebanjumpen.housekeeperskill.service.HousekeeperSkillService
-import com.itsci.mju.maebanjumpen.partyrole.dto.HousekeeperDTO
-import org.springframework.http.HttpStatus
+import com.itsci.mju.maebanjumpen.common.exception.BadRequestException
+import com.itsci.mju.maebanjumpen.common.exception.NotFoundException
+import com.itsci.mju.maebanjumpen.common.response.HttpResponse
+import com.itsci.mju.maebanjumpen.housekeeper.dto.HousekeeperSkillDTO
+import com.itsci.mju.maebanjumpen.housekeeper.service.HousekeeperSkillService
+import jakarta.validation.Valid
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/maeban/housekeeper-skills")
-class HousekeeperSkillController(private val housekeeperSkillService: HousekeeperSkillService) {
+class HousekeeperSkillController @Autowired internal constructor(
+    private val housekeeperSkillService: HousekeeperSkillService
+) {
+
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     @GetMapping
-    fun getAllHousekeeperSkills(): ResponseEntity<List<HousekeeperDTO>> {
-        val skills = housekeeperSkillService.getAllHousekeeperSkills()
-        return ResponseEntity.ok(skills)
+    fun getAllHousekeeperSkills(): ResponseEntity<Any> {
+        return try {
+            ResponseEntity.ok().body(
+                HttpResponse(
+                    true,
+                    "รายการ housekeeper skill สำเร็จ",
+                    housekeeperSkillService.getAllHousekeeperSkills()
+                )
+            )
+        } catch (e: Exception) {
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "รายการ housekeeper skill ไม่สำเร็จ"
+                )
+            )
+        }
     }
 
     @GetMapping("/{id}")
-    fun getHousekeeperSkillById(@PathVariable id: Long): ResponseEntity<HousekeeperSkillDTO> {
-        val skill = housekeeperSkillService.getHousekeeperSkillById(id)
-            ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(skill)
+    fun getHousekeeperSkillById(@PathVariable id: Long): ResponseEntity<Any> {
+        return try {
+            val skill = housekeeperSkillService.getHousekeeperSkillById(id)
+            if (skill != null) {
+                ResponseEntity.ok().body(
+                    HttpResponse(
+                        true,
+                        "ดึงข้อมูล housekeeper skill สำเร็จ",
+                        skill
+                    )
+                )
+            } else {
+                ResponseEntity.badRequest().body(
+                    HttpResponse(
+                        false,
+                        "ไม่พบข้อมูล housekeeper skill"
+                    )
+                )
+            }
+        } catch (e: NotFoundException) {
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "ไม่พบข้อมูล housekeeper skill"
+                )
+            )
+        } catch (e: Exception) {
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "ดึงข้อมูล housekeeper skill ไม่สำเร็จ"
+                )
+            )
+        }
     }
 
     @PostMapping
-    fun createHousekeeperSkill(@RequestBody housekeeperSkillDto: HousekeeperSkillDTO): ResponseEntity<HousekeeperSkillDTO?> {
+    fun createHousekeeperSkill(@Valid @RequestBody housekeeperSkillDto: HousekeeperSkillDTO): ResponseEntity<Any> {
         return try {
-            val createdSkill = housekeeperSkillService.saveHousekeeperSkill(housekeeperSkillDto)
-            ResponseEntity.status(HttpStatus.CREATED).body(createdSkill)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
-        } catch (e: RuntimeException) {
-            ResponseEntity.status(HttpStatus.CONFLICT).body(null)
+            ResponseEntity.ok().body(
+                HttpResponse(
+                    true,
+                    "สร้าง housekeeper skill สำเร็จ",
+                    housekeeperSkillService.saveHousekeeperSkill(housekeeperSkillDto)
+                )
+            )
+        } catch (e: BadRequestException) {
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "ส่งคำขอสร้าง housekeeper skill ไม่ถูกต้อง",
+                    false
+                )
+            )
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "สร้าง housekeeper skill ไม่สำเร็จ",
+                    false
+                )
+            )
         }
     }
 
     @PutMapping("/{id}")
-    fun updateHousekeeperSkill(@PathVariable id: Long, @RequestBody skillDto: HousekeeperSkillDTO): ResponseEntity<HousekeeperSkillDTO?> {
+    fun updateHousekeeperSkill(@PathVariable id: Long, @Valid @RequestBody skillDto: HousekeeperSkillDTO): ResponseEntity<Any> {
         return try {
-            val updatedSkill = housekeeperSkillService.updateHousekeeperSkill(id, skillDto)
-            ResponseEntity.ok(updatedSkill)
-        } catch (e: RuntimeException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+            ResponseEntity.ok().body(
+                HttpResponse(
+                    true,
+                    "อัพเดท housekeeper skill สำเร็จ",
+                    housekeeperSkillService.updateHousekeeperSkill(id, skillDto)
+                )
+            )
+        } catch (e: NotFoundException) {
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "ไม่พบข้อมูล housekeeper skill"
+                )
+            )
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "อัพเดท housekeeper skill ไม่สำเร็จ"
+                )
+            )
         }
     }
 
     @DeleteMapping("/{id}")
-    fun deleteHousekeeperSkill(@PathVariable id: Long): ResponseEntity<Map<String, String>> {
+    fun deleteHousekeeperSkill(@PathVariable id: Long): ResponseEntity<Any> {
         return try {
             if (housekeeperSkillService.getHousekeeperSkillById(id) == null) {
-                ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("status" to "error", "message" to "HousekeeperSkill not found with ID: $id"))
+                ResponseEntity.badRequest().body(
+                    HttpResponse(
+                        false,
+                        "ไม่พบข้อมูล housekeeper skill ที่ต้องการลบ"
+                    )
+                )
             } else {
                 housekeeperSkillService.deleteHousekeeperSkill(id)
-                ResponseEntity.ok(mapOf("status" to "success", "message" to "Skill deleted successfully"))
+                ResponseEntity.ok().body(
+                    HttpResponse(
+                        true,
+                        "ลบ housekeeper skill สำเร็จ"
+                    )
+                )
             }
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("status" to "error", "message" to "Failed to delete skill: ${e.message}"))
+            logger.error(e.message)
+            ResponseEntity.badRequest().body(
+                HttpResponse(
+                    false,
+                    e.message ?: "ลบ housekeeper skill ไม่สำเร็จ"
+                )
+            )
         }
     }
 }

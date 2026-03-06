@@ -5,11 +5,12 @@ import com.itsci.mju.maebanjumpen.partyrole.dto.HirerDTO
 import com.itsci.mju.maebanjumpen.partyrole.repository.HirerRepository
 import com.itsci.mju.maebanjumpen.partyrole.service.HirerService
 import org.hibernate.Hibernate
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class HirerServiceImpl(
+class HirerServiceImpl @Autowired internal constructor(
     private val hirerRepository: HirerRepository
 ) : HirerService {
 

@@ -1,4 +1,4 @@
-package com.itsci.mju.maebanjumpen.housekeeperskill.repository
+package com.itsci.mju.maebanjumpen.housekeeper.repository
 
 import com.itsci.mju.maebanjumpen.entity.HousekeeperSkill
 import org.springframework.data.jpa.repository.JpaRepository
